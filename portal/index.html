@@ -3,68 +3,211 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CLRTY PRISM + HELIX</title>
+  <title>CLRTY PRISM + HELIX — Developer Portal</title>
   <style>
-    :root { --bg:#0a0a0f; --cyan:#00e5ff; --purple:#b388ff; --blue:#448aff; --text:#e8e8f0; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:var(--bg); color:var(--text); }
-    header { padding:2rem; border-bottom:1px solid #222; display:flex; align-items:center; gap:1.5rem; }
-    header img { height:64px; }
-    h1 { margin:0; color:var(--cyan); letter-spacing:0.08em; }
-    main { max-width:960px; margin:0 auto; padding:2rem; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1rem; }
-    .card { border:1px solid #333; padding:1.25rem; border-radius:8px; background:#111118; }
-    .card h2 { margin-top:0; font-size:1rem; }
-    .prism { color:var(--purple); }
-    .helix { color:var(--blue); }
-    a { color:var(--cyan); }
-    code { background:#1a1a24; padding:0.15rem 0.4rem; border-radius:4px; }
-    pre { background:#1a1a24; padding:1rem; overflow:auto; border-radius:8px; }
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: #2a2a38;
+      --cyan: #00e5ff;
+      --purple: #b388ff;
+      --blue: #448aff;
+      --green: #69f0ae;
+      --red: #ff5252;
+      --yellow: #ffd740;
+      --text: #e8e8f0;
+      --muted: #8888a0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header {
+      padding: 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    header img { height: 56px; }
+    h1 { color: var(--cyan); font-size: 1.4rem; letter-spacing: 0.06em; }
+    .tagline { color: var(--muted); font-size: 0.85rem; }
+    nav {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+    }
+    nav a { color: var(--cyan); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+    main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+    h2 {
+      font-size: 1rem;
+      color: var(--cyan);
+      margin: 2rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h2:first-child { margin-top: 0; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .card {
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    .card h3 { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .prism { color: var(--purple); }
+    .helix { color: var(--blue); }
+    .success { color: var(--green); }
+    .risk { color: var(--red); }
+    .warn { color: var(--yellow); }
+    a { color: var(--cyan); }
+    code {
+      background: #1a1a24;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+    pre {
+      background: #1a1a24;
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      margin: 0.75rem 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 0.75rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    th { background: var(--surface); color: var(--cyan); }
+    ul { margin: 0.5rem 0 0.5rem 1.25rem; font-size: 0.9rem; }
+    li { margin: 0.25rem 0; }
+    .doc-link { display: block; padding: 0.5rem 0; font-size: 0.9rem; }
   </style>
 </head>
 <body>
   <header>
-    <img src="../assets/prism-logo.png" alt="PRISM logo" />
+    <img src="../assets/prism-logo.png" alt="PRISM" />
     <div>
       <h1>CLRTY PRISM + HELIX</h1>
-      <p>Intelligent routing + execution operating system</p>
+      <p class="tagline">Intelligent routing + execution operating system</p>
     </div>
   </header>
-  <main>
-    <section class="grid">
-      <div class="card">
-        <h2 class="prism">PRISM</h2>
-        <p>Intent engine, PoR scoring, mini-git ledger, adversarial validation.</p>
-      </div>
-      <div class="card">
-        <h2 class="helix">HELIX</h2>
-        <p>Smart routing, MEV protection, liquidity scan, simulation.</p>
-      </div>
-      <div class="card">
-        <h2>SKILLS</h2>
-        <p>Modular deterministic runtime — one skill lock at a time.</p>
-      </div>
-    </section>
 
-    <h2>Download</h2>
+  <nav>
+    <a href="#download">Download</a>
+    <a href="#install">Install</a>
+    <a href="#cli">CLI</a>
+    <a href="#sdk">SDK</a>
+    <a href="#docs">Docs</a>
+    <a href="https://github.com/williamsnameiswill/clarity-prism-cli">GitHub</a>
+  </nav>
+
+  <main>
+    <div class="grid">
+      <div class="card">
+        <h3 class="prism">PRISM</h3>
+        <p>Intent engine, PoR scoring, AI cache, mini-git ledger, adversarial validation.</p>
+        <code>clrt prism</code>
+      </div>
+      <div class="card">
+        <h3 class="helix">HELIX</h3>
+        <p>Smart routing, MEV protection, liquidity scan, swap simulation and execution.</p>
+        <code>clrt helix</code>
+      </div>
+      <div class="card">
+        <h3 class="success">SKILLS</h3>
+        <p>Modular capital-aware execution. One skill lock at a time.</p>
+        <code>clrt skill</code>
+      </div>
+    </div>
+
+    <h2 id="download">Download</h2>
     <ul>
-      <li><a href="https://github.com/williamsnameiswill/clarity-prism-cli">GitHub — full repo access</a></li>
-      <li><code>dist/clarity-prism-full.zip</code> — offline bundle (build with <code>make build-kit</code>)</li>
+      <li><a href="https://github.com/williamsnameiswill/clarity-prism-cli">GitHub — full repo</a></li>
+      <li><code>dist/clarity-prism-full.zip</code> — offline bundle (<code>make build-kit</code>)</li>
     </ul>
 
-    <h2>Install</h2>
+    <h2 id="install">Install</h2>
     <pre>git clone https://github.com/williamsnameiswill/clarity-prism-cli.git
 cd clarity-prism-cli
 npm install && npm run build
 bash npm-install-local.sh
-clrt --help</pre>
+clrt --help
+make verify</pre>
 
-    <h2>Quick commands</h2>
+    <h2 id="cli">CLI — Color system</h2>
+    <table>
+      <tr><th>Color</th><th>Layer</th><th>Meaning</th></tr>
+      <tr><td class="prism">Purple</td><td>PRISM</td><td>Intelligence, intent, prediction</td></tr>
+      <tr><td class="helix">Blue</td><td>HELIX</td><td>Execution, routing, simulation</td></tr>
+      <tr><td class="risk">Red</td><td>Guardrails</td><td>Validation failure, errors</td></tr>
+      <tr><td class="success">Green</td><td>Success</td><td>Completion, chain commit</td></tr>
+      <tr><td class="warn">Yellow</td><td>Warning</td><td>Skill lock conflicts</td></tr>
+    </table>
+
+    <h2>CLI — Commands</h2>
+
+    <h3 class="prism">PRISM</h3>
     <pre>clrt prism query "arbitrage opportunities"
-clrt helix execute swap --from SOL --to USDC --amount 1000
-clrt run "optimize portfolio yield"</pre>
+clrt prism predict --capital=1000
+clrt prism cache status
+clrt prism validate --intent arbitrage_scan --capital 1000
+clrt prism trace -n 20
+clrt prism stats</pre>
 
-    <p><a href="../docs/CLI_REFERENCE.md">CLI Reference</a> · <a href="../docs/PRISM_SDK.md">PRISM SDK</a> · <a href="../docs/HELIX_SDK.md">HELIX SDK</a></p>
+    <h3 class="helix">HELIX</h3>
+    <pre>clrt helix status
+clrt helix execute swap --from SOL --to USDC --amount 1000
+clrt helix simulate swap --amount 500
+clrt helix liquidity scan SOL/USDC</pre>
+
+    <h3 class="success">Skills + Pipeline</h3>
+    <pre>clrt skill install market-arbitrage
+clrt skill run market-arbitrage --capital 1000 --max-exposure 0.2
+clrt skill status
+clrt run "optimize portfolio yield" --capital 5000</pre>
+
+    <h2 id="sdk">SDK</h2>
+    <pre>npm install ./packages/prism-sdk
+npm install ./packages/prism-helix</pre>
+    <pre>import { PrismClient } from "@clrt/prism-sdk";
+import { PrismHelix } from "@clrt/prism-helix";
+
+const prism = new PrismClient({ network: "mainnet" });
+await prism.query({ intent: "portfolio_state", address: "WALLET" });
+
+const pipeline = new PrismHelix();
+await pipeline.execute({ intent: "optimize yield", capital: 5000 });</pre>
+
+    <h2 id="docs">Documentation</h2>
+    <a class="doc-link" href="../docs/QUICKSTART.md">QUICKSTART — 5-minute install</a>
+    <a class="doc-link" href="../docs/FULL_USAGE.md">FULL_USAGE — complete operational guide</a>
+    <a class="doc-link" href="../docs/CLI_REFERENCE.md">CLI_REFERENCE — every command and flag</a>
+    <a class="doc-link" href="../docs/PACKAGES.md">PACKAGES — all @clrt/* SDK APIs</a>
+    <a class="doc-link" href="../docs/EXAMPLES.md">EXAMPLES — copy-paste workflows</a>
+    <a class="doc-link" href="../docs/ENVIRONMENT.md">ENVIRONMENT — configuration variables</a>
+    <a class="doc-link" href="../DOWNLOADS.md">DOWNLOADS — Git + ZIP index</a>
   </main>
 </body>
 </html>
