@@ -1,0 +1,31 @@
+{
+  "name": "@clrt/cli",
+  "version": "1.0.0",
+  "description": "CLRTY CLI — PRISM intelligence + HELIX execution operating system",
+  "type": "module",
+  "bin": {
+    "clrt": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@clrt/prism-sdk": "1.0.0",
+    "@clrt/prism-core": "1.0.0",
+    "@clrt/prism-helix": "1.0.0",
+    "@clrt/helix-core": "1.0.0",
+    "@clrt/helix-routing": "1.0.0",
+    "@clrt/helix-protect": "1.0.0",
+    "@clrt/skills-sdk": "1.0.0",
+    "@clrt/skill-marketplace": "1.0.0",
+    "commander": "^12.1.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

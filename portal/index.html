@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CLRTY PRISM + HELIX</title>
+  <style>
+    :root { --bg:#0a0a0f; --cyan:#00e5ff; --purple:#b388ff; --blue:#448aff; --text:#e8e8f0; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:var(--bg); color:var(--text); }
+    header { padding:2rem; border-bottom:1px solid #222; display:flex; align-items:center; gap:1.5rem; }
+    header img { height:64px; }
+    h1 { margin:0; color:var(--cyan); letter-spacing:0.08em; }
+    main { max-width:960px; margin:0 auto; padding:2rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1rem; }
+    .card { border:1px solid #333; padding:1.25rem; border-radius:8px; background:#111118; }
+    .card h2 { margin-top:0; font-size:1rem; }
+    .prism { color:var(--purple); }
+    .helix { color:var(--blue); }
+    a { color:var(--cyan); }
+    code { background:#1a1a24; padding:0.15rem 0.4rem; border-radius:4px; }
+    pre { background:#1a1a24; padding:1rem; overflow:auto; border-radius:8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="../assets/prism-logo.png" alt="PRISM logo" />
+    <div>
+      <h1>CLRTY PRISM + HELIX</h1>
+      <p>Intelligent routing + execution operating system</p>
+    </div>
+  </header>
+  <main>
+    <section class="grid">
+      <div class="card">
+        <h2 class="prism">PRISM</h2>
+        <p>Intent engine, PoR scoring, mini-git ledger, adversarial validation.</p>
+      </div>
+      <div class="card">
+        <h2 class="helix">HELIX</h2>
+        <p>Smart routing, MEV protection, liquidity scan, simulation.</p>
+      </div>
+      <div class="card">
+        <h2>SKILLS</h2>
+        <p>Modular deterministic runtime — one skill lock at a time.</p>
+      </div>
+    </section>
+
+    <h2>Download</h2>
+    <ul>
+      <li><a href="https://github.com/williamsnameiswill/clarity-prism-cli">GitHub — full repo access</a></li>
+      <li><code>dist/clarity-prism-full.zip</code> — offline bundle (build with <code>make build-kit</code>)</li>
+    </ul>
+
+    <h2>Install</h2>
+    <pre>git clone https://github.com/williamsnameiswill/clarity-prism-cli.git
+cd clarity-prism-cli
+npm install && npm run build
+bash npm-install-local.sh
+clrt --help</pre>
+
+    <h2>Quick commands</h2>
+    <pre>clrt prism query "arbitrage opportunities"
+clrt helix execute swap --from SOL --to USDC --amount 1000
+clrt run "optimize portfolio yield"</pre>
+
+    <p><a href="../docs/CLI_REFERENCE.md">CLI Reference</a> · <a href="../docs/PRISM_SDK.md">PRISM SDK</a> · <a href="../docs/HELIX_SDK.md">HELIX SDK</a></p>
+  </main>
+</body>
+</html>

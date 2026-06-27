@@ -1,0 +1,23 @@
+{
+  "name": "@clrt/prism-core",
+  "version": "1.0.0",
+  "description": "PRISM core runtime — intent engine, cache, state fusion, mini-git ledger",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
