@@ -15,3 +15,4 @@ export {
   type ValidateInput,
   type ValidateResult,
 } from "./ledger/index.js";
+export { QueryQueue, type QueueJob, type QueueJobStatus, type QueryQueueSnapshot } from "./query-queue.js";

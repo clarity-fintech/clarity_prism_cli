@@ -6,6 +6,14 @@ export type OutputLine = {
   tone?: "prism" | "helix" | "success" | "risk" | "muted";
 };
 
+export type BlockchainIntegration =
+  | "prism"
+  | "helix"
+  | "indexer"
+  | "settlement"
+  | "intelligence"
+  | "pipeline";
+
 const STORAGE_KEY = "prism-cli-events";
 const SETTINGS_KEY = "prism-cli-settings";
 
@@ -51,20 +59,14 @@ function appendBrowserEvent(type: string, intent: string, summary: string): void
 
 const engine = new IntentEngine();
 
-async function apiQuery(
-  settings: PrismSettings,
-  body: Record<string, unknown>
-): Promise<unknown | null> {
+async function apiFetch(path: string, init?: RequestInit): Promise<unknown | null> {
+  const settings = loadSettings();
   const base = settings.apiUrl.replace(/\/$/, "");
   if (!base) return null;
   try {
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    const headers: Record<string, string> = { ...(init?.headers as Record<string, string>) };
     if (settings.apiKey) headers.Authorization = `Bearer ${settings.apiKey}`;
-    const res = await fetch(`${base}/v1/prism/intent-aware`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    });
+    const res = await fetch(`${base}${path}`, { ...init, headers });
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -72,18 +74,52 @@ async function apiQuery(
   }
 }
 
+async function apiQuery(body: Record<string, unknown>): Promise<unknown | null> {
+  return apiFetch("/v1/prism/intent-aware", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+/** Live blockchain + CLRTY integration snapshot (falls back to local stubs). */
+export async function fetchBlockchainIntegrations(): Promise<Record<BlockchainIntegration, unknown>> {
+  const [prism, helix, indexer, settlement, intelligence] = await Promise.all([
+    apiFetch("/v1/prism/status"),
+    apiFetch("/v1/helix/status"),
+    apiFetch("/v1/indexer/clrty-l1"),
+    apiFetch("/v1/compliance/genesis-instructions"),
+    apiFetch("/v1/intelligence/network"),
+  ]);
+
+  return {
+    prism: prism ?? { mode: "local", chain_id: "clrty-1", status: "shadow" },
+    helix: helix ?? { mode: "local", kernel: "helix-shadow", tick: 0 },
+    indexer: indexer ?? { chain: "clrty-l1", block_height: 0, events: [], mode: "local" },
+    settlement: settlement ?? { mode: "local", attestations: 0, treasury: "deferred" },
+    intelligence: intelligence ?? { clrty_price_usd: 71.4, mode: "local" },
+    pipeline: {
+      layers: ["PRISM", "HELIX", "CHAIN"],
+      commit_tier: "shadow → attested → canonical",
+      ldnet: "var/ldnet/state_root.bin",
+      helix_shadow: "var/helix/shadow_state.json",
+    },
+  };
+}
+
 export async function prismQuery(text: string): Promise<OutputLine[]> {
-  const settings = loadSettings();
   const intent = text.includes(" ") ? text.split(" ")[0]! : text;
+  const integrations = await fetchBlockchainIntegrations();
   const lines: OutputLine[] = [
     { text: "PRISM ENGINE ACTIVE", tone: "prism" },
     { text: "━━━━━━━━━━━━━━━━━━━━━━", tone: "muted" },
     { text: "→ Filtering market states...", tone: "muted" },
+    { text: "→ Syncing blockchain integrations...", tone: "muted" },
     { text: "→ Predicting liquidity gaps...", tone: "muted" },
     { text: "→ Optimizing query path...", tone: "muted" },
   ];
 
-  const remote = await apiQuery(settings, {
+  const remote = await apiQuery({
     query: text,
     intent,
     capital_context: "default",
@@ -99,10 +135,13 @@ export async function prismQuery(text: string): Promise<OutputLine[]> {
   lines.push({ text: `Intent: ${intent}`, tone: "prism" });
   lines.push({ text: `Confidence: ${Math.round(confidence * 10) / 10}%`, tone: "prism" });
   lines.push({ text: "", tone: "muted" });
+  lines.push({ text: "BLOCKCHAIN INTEGRATIONS", tone: "helix" });
+  lines.push({ text: JSON.stringify(integrations, null, 2), tone: "muted" });
+  lines.push({ text: "", tone: "muted" });
   lines.push({ text: "RESULT READY", tone: "success" });
   lines.push({ text: JSON.stringify(result, null, 2), tone: "muted" });
 
-  appendBrowserEvent("query", intent, `confidence=${confidence}%`);
+  appendBrowserEvent("query", intent, `confidence=${confidence}% mode=${(result as { mode?: string }).mode ?? "local"}`);
   return lines;
 }
 
@@ -174,6 +213,7 @@ export const CLI_COMMANDS: Record<string, string> = {
   "prism validate": "clrt prism validate --intent arbitrage_scan",
   "prism trace": "clrt prism trace -n 20",
   "prism stats": "clrt prism stats",
+  "prism queue": "clrt prism queue status",
   "helix status": "clrt helix status",
   "helix execute": "clrt helix execute swap --from SOL --to USDC --amount 1000",
   "helix simulate": "clrt helix simulate swap --amount 500",
@@ -189,7 +229,7 @@ export async function runCliCommand(key: string): Promise<OutputLine[]> {
     { text: "HELIX / CLRT COMMAND", tone: "helix" },
     { text: cmd, tone: "helix" },
     { text: "", tone: "muted" },
-    { text: "Run this in your terminal (npm install -g @clrt/cli)", tone: "muted" },
+    { text: "Run in terminal: node apps/cli/dist/index.js …", tone: "muted" },
   ];
   let extra: OutputLine[] = [];
   if (key.startsWith("prism query")) extra = await prismQuery("arbitrage opportunities");
@@ -198,6 +238,8 @@ export async function runCliCommand(key: string): Promise<OutputLine[]> {
     extra = prismValidate("Market opportunity within risk bounds", "arbitrage_scan");
   else if (key.startsWith("prism trace")) extra = prismTrace();
   else if (key.startsWith("prism stats")) extra = prismStats();
+  else if (key.startsWith("prism queue"))
+    extra = [{ text: JSON.stringify({ pending: 0, note: "Use clrt prism queue status" }, null, 2), tone: "muted" }];
   else
     extra = [{ text: "Local preview — use `clrt` CLI for full HELIX execution.", tone: "muted" }];
   return [...base, ...extra];

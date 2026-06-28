@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { PrismClient } from "@clrt/prism-sdk";
 import { validateClaim, traceLog, computeStats } from "@clrt/prism-core";
 import { header, step, done, theme } from "../theme.js";
+import { prismQueryQueue } from "../query-queue.js";
 
 export function registerPrism(program: Command): void {
   const prism = program.command("prism").description("PRISM intelligence layer");
@@ -9,22 +10,49 @@ export function registerPrism(program: Command): void {
   prism
     .command("query")
     .argument("<text>", "query or intent text")
-    .description("Intent-aware query")
+    .option("--wait", "wait for queue slot (default: enqueue and process serially)", true)
+    .description("Intent-aware query (serialized through backlog queue)")
     .action(async (text: string) => {
       header("PRISM ENGINE", "prism");
-      const client = new PrismClient();
+      const snap = prismQueryQueue.snapshot();
+      if (snap.pending > 0 || snap.running) {
+        step(`Queue: ${snap.pending} pending · processing one at a time`);
+      }
+      const id = prismQueryQueue.enqueue(text);
       step("Filtering market states...");
       step("Predicting liquidity gaps...");
       step("Optimizing query path...");
-      const result = await client.query({
-        intent: text.includes(" ") ? text.split(" ")[0]! : text,
-        query: text,
-      });
+      const result = await prismQueryQueue.wait(id);
       console.log(`Intent: ${result.intent}`);
       console.log(`Confidence: ${result.confidence}%`);
+      console.log(`Mode: ${result.mode}`);
       console.log("");
       done("RESULT READY");
       console.log(JSON.stringify(result, null, 2));
+    });
+
+  const queueCmd = prism.command("queue").description("PRISM query backlog");
+
+  queueCmd
+    .command("status")
+    .description("Show queue depth and recent jobs")
+    .action(() => {
+      header("PRISM QUEUE", "prism");
+      done("QUEUE STATUS");
+      console.log(JSON.stringify(prismQueryQueue.snapshot(), null, 2));
+    });
+
+  queueCmd
+    .command("submit")
+    .argument("<text...>", "one or more prompts to enqueue")
+    .description("Enqueue prompts without waiting (returns job ids)")
+    .action((parts: string[]) => {
+      const text = parts.join(" ");
+      const ids = text.split("|").map((chunk) => chunk.trim()).filter(Boolean).map((chunk) => {
+        const id = prismQueryQueue.enqueue(chunk);
+        return { id, prompt: chunk };
+      });
+      console.log(JSON.stringify({ enqueued: ids.length, jobs: ids }, null, 2));
     });
 
   prism

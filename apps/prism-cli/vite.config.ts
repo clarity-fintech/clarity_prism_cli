@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 
 export default defineConfig({
+  root: path.resolve(__dirname),
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -11,6 +12,6 @@ export default defineConfig({
       "@clrt/prism-models": path.resolve(__dirname, "../../packages/prism-models/src/index.ts"),
     },
   },
-  server: { port: 5174 },
+  server: { port: 5174, strictPort: false },
   build: { outDir: "dist", emptyOutDir: true },
 });

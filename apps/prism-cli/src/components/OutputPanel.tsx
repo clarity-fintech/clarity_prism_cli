@@ -1,17 +1,28 @@
 import clsx from "clsx";
-import type { OutputLine } from "../lib/prism-bridge";
+import type { LogEntry } from "../lib/useQueryQueue";
 
 interface OutputPanelProps {
-  lines: OutputLine[];
+  entries: LogEntry[];
 }
 
-export default function OutputPanel({ lines }: OutputPanelProps) {
-  if (!lines.length) return null;
+export default function OutputPanel({ entries }: OutputPanelProps) {
+  if (!entries.length) return null;
   return (
     <div className="output-panel">
-      {lines.map((line, i) => (
-        <div key={i} className={clsx("output-line", line.tone)}>
-          {line.text}
+      {entries.map((entry) => (
+        <div key={entry.id} className="output-block">
+          <div className="output-user">&gt; {entry.userText}</div>
+          {entry.status === "queued" && (
+            <div className="output-line muted">… queued ({entry.status})</div>
+          )}
+          {entry.status === "running" && (
+            <div className="output-line prism">… processing</div>
+          )}
+          {entry.lines.map((line, i) => (
+            <div key={i} className={clsx("output-line", line.tone)}>
+              {line.text}
+            </div>
+          ))}
         </div>
       ))}
     </div>

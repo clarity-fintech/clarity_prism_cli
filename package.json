@@ -10,7 +10,7 @@
   "scripts": {
     "build": "node scripts/build_all.mjs",
     "build:terminal": "npm run build -w prism-cli",
-    "dev:terminal": "npm run dev -w prism-cli",
+    "dev:terminal": "node scripts/dev-terminal.mjs",
     "clean": "npm run clean --workspaces --if-present",
     "verify": "node scripts/verify_packages.mjs"
   },

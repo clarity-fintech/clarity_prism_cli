@@ -13,6 +13,8 @@ git clone https://github.com/williamsnameiswill/clarity-prism-cli.git
 cd clarity-prism-cli
 ```
 
+If `clarity-prism-cli` already exists, `cd` into it and run `git pull` instead of cloning again.
+
 Or extract `dist/clarity-prism-full.zip` from the [releases/download bundle](../DOWNLOADS.md).
 
 ## Step 2 — Install and build
@@ -71,7 +73,7 @@ cp .env.example .env
 Edit `.env`:
 
 ```env
-CLRTY_API_URL=http://127.0.0.1:8787
+CLRTY_API_URL=http://127.0.0.1:8545
 CLRTY_API_KEY=your_key_if_required
 ```
 
@@ -92,8 +94,18 @@ make verify
 
 Passes when: all 14 packages build, CLI smoke tests exit 0, ZIP bundle is produced.
 
+## Step 6 — Visual terminal UI (optional)
+
+```bash
+# http://localhost:5174
+npm run dev:terminal
+```
+
+Issues? See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
+
 ## Next steps
 
 - [FULL_USAGE.md](./FULL_USAGE.md) — operational guide
 - [CLI_REFERENCE.md](./CLI_REFERENCE.md) — complete command reference
 - [EXAMPLES.md](./EXAMPLES.md) — trading, validation, and skill workflows
+- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) — clone, Vite `#`, zsh glob, ports

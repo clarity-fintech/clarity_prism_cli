@@ -1,6 +1,8 @@
 # CLRTY PRISM + HELIX
 
-**Intelligent routing + execution operating system** — developer download ecosystem with full CLI, SDK packages, and customer-ready documentation.
+**Topic:** Intelligent routing + execution operating system — PRISM decides *what*, HELIX decides *how*, Skills decide *what value*.
+
+Standalone repo: https://github.com/williamsnameiswill/clarity-prism-cli
 
 | Layer | Role | CLI |
 |-------|------|-----|
@@ -8,7 +10,9 @@
 | **HELIX** | Decides *how* it should happen — routing, MEV protection, execution | `clrt helix` |
 | **SKILLS** | Decides *what value* it creates — modular deterministic runtime | `clrt skill` |
 
-**Repository:** https://github.com/williamsnameiswill/clarity-prism-cli
+**Blockchain integrations:** PRISM connects to clrty-l1 indexer, HELIX shadow state, settlement attestations, and network intelligence via `CLRTY_API_URL` (port **8545**). Local fallback uses in-repo engines + mini-git ledger.
+
+**Query backlog:** Terminal UI and `clrt prism query` process **one prompt at a time** with automatic queueing for additional prompts (`clrt prism queue status`).
 
 ---
 
@@ -55,12 +59,12 @@ Extract `dist/clarity-prism-full.zip`, then run `bash npm-install-local.sh`.
 ### Visual terminal UI (matches PRISM design)
 
 ```bash
-npm run dev:terminal    # http://localhost:5174
-npm run build:terminal  # apps/prism-cli/dist/
+# Terminal UI → http://localhost:5174
+npm run dev:terminal
+npm run build:terminal
 ```
 
-Interactive menu: Chat with PRISM, Run commands, Activity trace, Settings, Integrations.  
-See [apps/prism-cli/README.md](./apps/prism-cli/README.md).
+Output: `apps/prism-cli/dist/`. See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) if Vite warns about `#` in paths.
 
 ### PRISM (purple)
 
