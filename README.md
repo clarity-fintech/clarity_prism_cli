@@ -1,5 +1,7 @@
 # CLRTY PRISM + HELIX
 
+**Version:** `1.0.1.μ1` — Tier 5 Enterprise CLI (chain-native, investor walkthrough, QA exchange hub)
+
 **Topic:** Intelligent routing + execution operating system — PRISM decides *what*, HELIX decides *how*, Skills decide *what value*.
 
 Standalone repo: https://github.com/williamsnameiswill/clarity-prism-cli
@@ -101,6 +103,23 @@ clrt skill locks
 clrt run "optimize portfolio yield" --capital 5000
 ```
 
+### Tier 5 (v1.0.1)
+
+```bash
+clrt version
+clrt registry
+clrt account create --entity "Acme Capital" --email ops@acme.com --intent liquidity
+clrt partner request-access
+clrt settlement instructions
+clrt chain status
+clrt exchange list
+clrt pack list
+clrt prism init
+clrt prism commons discover arbitrage
+```
+
+Global flags: `--json` · `--dry-run`
+
 ---
 
 ## SDK quick start
@@ -135,7 +154,7 @@ await pipeline.execute({ intent: "optimize yield", capital: 5000 });
 
 ```bash
 cp .env.example .env
-export CLRTY_API_URL=http://127.0.0.1:8787
+export CLRTY_API_URL=http://127.0.0.1:8545
 export CLRTY_API_KEY=your_key
 ```
 

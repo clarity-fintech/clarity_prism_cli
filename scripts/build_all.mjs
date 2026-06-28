@@ -19,6 +19,11 @@ const order = [
   "@clrt/prism-helix",
   "@clrt/skill-marketplace",
   "@clrt/skills-sdk",
+  "@clrt/primitive-registry",
+  "@clrt/repo-sync",
+  "@clrt/account-profile",
+  "@clrt/market-feeds",
+  "@clrt/commons-cas",
   "@clrt/cli",
 ];
 

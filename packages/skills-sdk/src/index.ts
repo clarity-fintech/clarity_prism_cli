@@ -106,3 +106,18 @@ export function resolveSkillName(short: string): string {
 }
 
 export const BUILTIN_SKILLS = Object.keys(handlers);
+
+export {
+  requestPartnerAccess,
+  getPartnerAccessStatus,
+  type PartnerAccessRequest,
+  type PartnerAccessResult,
+  type PartnerAccessStatus,
+} from "./partner-access.js";
+
+export {
+  runQuantumSkill,
+  listQuantumSkills,
+  QUANTUM_SKILLS,
+  type QuantumSkillMeta,
+} from "./quantum-skills.js";

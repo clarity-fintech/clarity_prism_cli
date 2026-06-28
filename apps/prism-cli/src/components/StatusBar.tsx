@@ -1,4 +1,7 @@
+import { versionLabel } from "../lib/version";
+
 interface StatusBarProps {
+  funnelLabel?: string;
   contextLeft?: number;
   sandbox?: boolean;
   queuePending?: number;
@@ -6,6 +9,7 @@ interface StatusBarProps {
 }
 
 export default function StatusBar({
+  funnelLabel = "Home",
   contextLeft = 100,
   sandbox = false,
   queuePending = 0,
@@ -18,13 +22,13 @@ export default function StatusBar({
 
   return (
     <footer className="statusbar">
-      <div className="statusbar-left">~</div>
+      <div className="statusbar-left">{funnelLabel}</div>
       <div className="statusbar-center">
         <span className={sandbox ? "" : "warn"}>{sandbox ? "sandbox" : "no"}</span> sandbox{" "}
         <span>(see /docs)</span> · <span className="queue-badge">{queueLabel}</span>
       </div>
       <div className="statusbar-right">
-        prism-cli v1.0.0 ({contextLeft}% context left)
+        prism-cli {versionLabel()} ({contextLeft}% context left)
       </div>
     </footer>
   );

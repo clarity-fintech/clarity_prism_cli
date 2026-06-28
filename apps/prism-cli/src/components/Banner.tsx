@@ -1,4 +1,5 @@
 import Balancer from "react-wrap-balancer";
+import { versionLabel } from "../lib/version";
 
 export default function Banner() {
   return (
@@ -43,7 +44,7 @@ export default function Banner() {
         </div>
       </div>
       <div className="banner-meta">
-        <div className="banner-version">PRISM CLI v1.0.0</div>
+        <div className="banner-version">PRISM CLI {versionLabel()}</div>
         <div className="banner-tagline">
           <Balancer>The intelligent assistant for developers.</Balancer>
         </div>

@@ -1,41 +1,74 @@
 # CLI Reference — Complete Command Guide
 
 Global binary: **`clrt`**  
-Version: **1.0.0**
+Version: **1.0.1.μ1** (micro counter increments on each CLI reprep within a patch)
 
 ```bash
 clrt --help
-clrt --version
+clrt --version          # prints 1.0.1.μ1
+clrt version            # release notes + primitive count
+clrt version --json
 clrt <command> --help
 ```
 
+**Global flags:** `--json` · `--dry-run`
+
 ---
 
-## Command tree
+## Command tree (v1.0.1)
 
 ```
-clrt
+clrt [--json] [--dry-run]
+├── version
+├── registry [--category System|Identity|Commons|Registry|Execution|Governance]
+├── account
+│   ├── create [--entity] [--email] [--intent] [--cage] [--wallet] [--tier]
+│   ├── login [--device-code]
+│   └── status
+├── partner
+│   ├── request-access [--entity] [--intent]
+│   └── status
+├── settlement
+│   ├── instructions
+│   ├── register --wallet <addr>
+│   ├── preview [--usd-cents <n>]
+│   ├── confirm-deposit --wallet <addr> --tx-hash <hash>
+│   └── status [--wallet <addr>]
+├── chain
+│   ├── status
+│   ├── sets <address>
+│   ├── indexer
+│   ├── dx list|parse|execute
+│   ├── simulate
+│   └── devnet status
+├── exchange
+│   ├── list
+│   ├── status [<slug>]
+│   ├── test <slug>
+│   └── qa [--dry-run]
+├── pack
+│   ├── list
+│   ├── download mastermind|wallet-integration
+│   └── verify mastermind|wallet-integration
 ├── prism
+│   ├── init
+│   ├── sync [--repos]
+│   ├── identity --cage <ID>
+│   ├── commons get|put|discover|peers
+│   ├── audit [--session <id>]
 │   ├── query <text>
+│   ├── queue status|submit
 │   ├── predict [--capital <n>]
-│   ├── cache
-│   │   └── status
-│   ├── validate [--claim <text>] [--intent <text>] [--capital <n>]
+│   ├── cache status
+│   ├── validate [--claim] [--intent] [--capital]
 │   ├── trace [-n <num>]
 │   └── stats
 ├── helix
 │   ├── status
-│   ├── execute
-│   │   └── swap --from <asset> --to <asset> --amount <n>
-│   ├── simulate
-│   │   └── swap [--from <asset>] [--to <asset>] --amount <n>
-│   └── liquidity
-│       └── scan <pair>
-├── skill
-│   ├── install <name>
-│   ├── run <name> [--capital <n>] [--max-exposure <n>]
-│   ├── status
-│   └── locks
+│   ├── execute swap --from --to --amount
+│   ├── simulate swap
+│   └── liquidity scan <pair>
+├── skill install|run|status|locks
 └── run <intent> [--capital <n>]
 ```
 
@@ -476,3 +509,21 @@ See [ENVIRONMENT.md](./ENVIRONMENT.md) for full reference.
 
 - [FULL_USAGE.md](./FULL_USAGE.md) — operational guide with troubleshooting
 - [EXAMPLES.md](./EXAMPLES.md) — multi-step workflow scripts
+- [PRIMITIVE_REGISTRY.md](./PRIMITIVE_REGISTRY.md) — Tier 5 command taxonomy
+- [PROJECT_DATA_INVENTORY.md](./PROJECT_DATA_INVENTORY.md) — repo + manifest sync
+
+---
+
+## v1.0.1 commands (summary)
+
+| Group | Purpose |
+|-------|---------|
+| `clrt account` | Passwordless profile (no password stored) |
+| `clrt partner` | Early Access / Mastermind request |
+| `clrt settlement` | Genesis deposit on clrty-1 (`/v1/compliance/*`) |
+| `clrt chain` | clrty-1 status, sets, indexer, DX primitives |
+| `clrt exchange` | QA hub — Binance, Coinbase, Kraken + antiban rate limits |
+| `clrt pack` | Mastermind + wallet-integration ZIPs |
+| `clrt prism init\|sync\|commons\|audit` | Registry, P2P commons, compliance export |
+| `clrt registry` | List all registered primitives |
+| `clrt version` | Release info + **μ micro counter** |
