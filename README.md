@@ -52,6 +52,16 @@ Extract `dist/clarity-prism-full.zip`, then run `bash npm-install-local.sh`.
 
 ## CLI quick reference
 
+### Visual terminal UI (matches PRISM design)
+
+```bash
+npm run dev:terminal    # http://localhost:5174
+npm run build:terminal  # apps/prism-cli/dist/
+```
+
+Interactive menu: Chat with PRISM, Run commands, Activity trace, Settings, Integrations.  
+See [apps/prism-cli/README.md](./apps/prism-cli/README.md).
+
 ### PRISM (purple)
 
 ```bash

@@ -1,0 +1,13 @@
+.tilde {
+  font-size: 32px;
+  color: #d6d6d6;
+  margin-bottom: 24px;
+  line-height: 1;
+}
+
+.cli {
+  font-size: 22px;
+  color: #e5e5e5;
+  margin-bottom: 40px;
+  letter-spacing: 0.4px;
+}

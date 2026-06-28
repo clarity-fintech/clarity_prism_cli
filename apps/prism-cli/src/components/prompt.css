@@ -1,0 +1,50 @@
+.prompt-wrap {
+  flex-shrink: 0;
+  margin-bottom: 16px;
+}
+
+.prompt-box {
+  border: 1px dashed var(--cyan);
+  border-radius: 2px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+}
+
+.prompt-chevron {
+  color: var(--cyan);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.prompt-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--white);
+  font-family: inherit;
+  font-size: 15px;
+  caret-color: var(--cyan);
+}
+
+.prompt-input::placeholder {
+  color: var(--muted);
+}
+
+.prompt-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: var(--cyan);
+  animation: blink 1s step-end infinite;
+  flex-shrink: 0;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

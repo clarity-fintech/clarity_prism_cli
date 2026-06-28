@@ -1,0 +1,13 @@
+:root {
+  --bg: #040b15;
+  --bg2: #07111f;
+  --cyan: #44d6ff;
+  --cyan2: #68dfff;
+  --white: #ececec;
+  --muted: #7d8695;
+  --green: #57d657;
+  --red: #ef8080;
+  --purple: #7d74ff;
+  --border: #1b3446;
+  --terminal-width: 1320px;
+}

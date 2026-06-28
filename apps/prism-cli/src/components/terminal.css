@@ -1,0 +1,10 @@
+.terminal {
+  width: var(--terminal-width);
+  max-width: 100vw;
+  height: 920px;
+  padding: 24px 34px;
+  background: #050b16;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}

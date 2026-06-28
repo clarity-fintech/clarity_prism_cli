@@ -1,0 +1,88 @@
+.banner-wrap {
+  margin-bottom: 36px;
+  flex-shrink: 0;
+}
+
+.banner-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 18px;
+}
+
+.prism-logo-svg {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(68, 214, 255, 0.35));
+}
+
+.prism-word {
+  font-size: 108px;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: 0.06em;
+  font-family: "Berkeley Mono", "Geist Mono", "SF Mono", monospace;
+  background: linear-gradient(180deg, var(--cyan2) 0%, #3a8fd4 35%, #2a5a9e 70%, #1a3a6e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+  text-shadow: none;
+  filter: contrast(1.15);
+  image-rendering: pixelated;
+}
+
+.prism-word::after {
+  content: "PRISM";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(0, 0, 0, 0.12) 4px
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  pointer-events: none;
+}
+
+.prism-word-glow {
+  position: absolute;
+  font-size: 108px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: rgba(68, 214, 255, 0.08);
+  transform: translate(3px, 3px);
+  z-index: -1;
+  user-select: none;
+}
+
+.banner-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.banner-version {
+  font-size: 15px;
+  color: var(--cyan);
+  letter-spacing: 0.02em;
+}
+
+.banner-tagline {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.banner-dither {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
