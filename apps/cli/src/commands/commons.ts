@@ -1,10 +1,25 @@
 import { Command } from "commander";
-import { defaultCommonsStore } from "@clrt/commons-cas";
+import { defaultCommonsStore, sendToUser, type CommonsApiClient } from "@clrt/commons-cas";
+import { loadProfile } from "@clrt/account-profile";
+import { apiFetch, getApiBaseUrl } from "../lib/api-client.js";
 import { formatOutput, parseGlobalFlags, shouldDryRun } from "../middleware/json-dry-run.js";
 import { header, done } from "../theme.js";
 
+const commonsApi: CommonsApiClient = {
+  postTransfer: (body) =>
+    apiFetch(getApiBaseUrl(), "/v1/commons/transfer", { method: "POST", json: body }) as Promise<{
+      transfer?: { id: string };
+    } | null>,
+  getInbox: (username) =>
+    apiFetch(getApiBaseUrl(), `/v1/commons/inbox/${encodeURIComponent(username)}`) as Promise<{
+      transfers?: import("@clrt/commons-cas").InboxTransfer[];
+    } | null>,
+  postReceive: (body) =>
+    apiFetch(getApiBaseUrl(), "/v1/commons/receive", { method: "POST", json: body }),
+};
+
 export function registerCommons(prism: Command): void {
-  const commons = prism.command("commons").description("PRISM Commons CAS");
+  const commons = prism.command("commons").description("PRISM Commons CAS + username P2P");
 
   commons
     .command("put")
@@ -24,6 +39,87 @@ export function registerCommons(prism: Command): void {
       const asset = defaultCommonsStore.put(file, opts.topic);
       done("PUT COMPLETE");
       formatOutput(asset, flags.json);
+    });
+
+  commons
+    .command("send")
+    .requiredOption("--to <username>", "recipient username")
+    .requiredOption("--file <path>", "file to send")
+    .description("Send file to username via commons transfer")
+    .action(async (opts: { to: string; file: string }, cmd) => {
+      const parent = cmd.parent?.parent?.parent?.opts() ?? {};
+      const flags = parseGlobalFlags(parent);
+      header("PRISM COMMONS", "prism");
+
+      const profile = loadProfile();
+      if (!profile?.username) {
+        formatOutput({ error: "account required — run clrt account create --username ..." }, flags.json);
+        process.exit(1);
+      }
+
+      if (shouldDryRun(flags)) {
+        formatOutput({ dryRun: true, from: profile.username, to: opts.to, file: opts.file }, flags.json);
+        return;
+      }
+
+      const result = await sendToUser(defaultCommonsStore, commonsApi, profile.username, opts.to, opts.file);
+      done(result.transferId ? "SENT" : "QUEUED (API offline)");
+      formatOutput(
+        {
+          from: profile.username,
+          to: opts.to,
+          namespace: `clrty://@${opts.to}`,
+          ...result,
+        },
+        flags.json
+      );
+    });
+
+  commons
+    .command("inbox")
+    .description("List inbound transfers for your username")
+    .action(async (_opts, cmd) => {
+      const parent = cmd.parent?.parent?.parent?.opts() ?? {};
+      const flags = parseGlobalFlags(parent);
+      header("PRISM COMMONS", "prism");
+
+      const profile = loadProfile();
+      if (!profile?.username) {
+        formatOutput({ error: "account required" }, flags.json);
+        process.exit(1);
+      }
+
+      const data = await commonsApi.getInbox(profile.username);
+      done("INBOX READY");
+      formatOutput(
+        data ?? { username: profile.username, transfers: [], mode: "local-outbox-only" },
+        flags.json
+      );
+    });
+
+  commons
+    .command("receive")
+    .argument("<transfer-id>", "transfer id from inbox")
+    .description("Mark transfer received")
+    .action(async (transferId: string, _opts, cmd) => {
+      const parent = cmd.parent?.parent?.parent?.opts() ?? {};
+      const flags = parseGlobalFlags(parent);
+      header("PRISM COMMONS", "prism");
+
+      const profile = loadProfile();
+      if (!profile?.username) {
+        formatOutput({ error: "account required" }, flags.json);
+        process.exit(1);
+      }
+
+      if (shouldDryRun(flags)) {
+        formatOutput({ dryRun: true, transferId }, flags.json);
+        return;
+      }
+
+      const data = await commonsApi.postReceive({ transfer_id: transferId, username: profile.username });
+      done("RECEIVED");
+      formatOutput(data ?? { transferId, status: "local-stub" }, flags.json);
     });
 
   commons
@@ -54,7 +150,7 @@ export function registerCommons(prism: Command): void {
 
   commons
     .command("peers")
-    .description("List commons mesh peers (stub)")
+    .description("List commons mesh peers")
     .action((_opts, cmd) => {
       const parent = cmd.parent?.parent?.parent?.opts() ?? {};
       const flags = parseGlobalFlags(parent);

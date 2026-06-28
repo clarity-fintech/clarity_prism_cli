@@ -15,6 +15,7 @@ import { registerSettlement } from "./commands/settlement.js";
 import { registerChain } from "./commands/chain.js";
 import { registerExchange } from "./commands/exchange.js";
 import { registerPack } from "./commands/pack.js";
+import { registerWallet } from "./commands/wallet.js";
 import { header, step, done, theme } from "./theme.js";
 import { CLRTY_RELEASE, CLRTY_MICRO, versionLabel } from "./version.js";
 
@@ -36,6 +37,7 @@ registerSettlement(program);
 registerChain(program);
 registerExchange(program);
 registerPack(program);
+registerWallet(program);
 
 const prismCmd = program.commands.find((c) => c.name() === "prism");
 if (prismCmd) {

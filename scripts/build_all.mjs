@@ -24,6 +24,7 @@ const order = [
   "@clrt/account-profile",
   "@clrt/market-feeds",
   "@clrt/commons-cas",
+  "@clrt/clarity-wallet",
   "@clrt/cli",
 ];
 

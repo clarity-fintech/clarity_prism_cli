@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 export type TierInterest = "seed" | "strategic" | "hardware-node";
 
 export interface AccountProfile {
+  username: string;
   entity: string;
   email: string;
   cage?: string;
@@ -24,7 +25,21 @@ export interface SessionToken {
   method: "pkce" | "device-code" | "none";
 }
 
+const USERNAME_RE = /^[a-z0-9_-]{3,32}$/;
+
 const BASE = join(homedir(), ".clrt", "prism");
+
+export function validateUsername(raw: string): { ok: true; username: string } | { ok: false; error: string } {
+  const username = raw.trim().toLowerCase();
+  if (!USERNAME_RE.test(username)) {
+    return { ok: false, error: "username must be 3-32 chars: lowercase letters, digits, _ or -" };
+  }
+  return { ok: true, username };
+}
+
+export function usernameNamespace(username: string): string {
+  return `clrty://@${username}`;
+}
 
 export function getProfilePath(): string {
   return join(BASE, "account.json");
@@ -50,6 +65,7 @@ export function saveProfile(profile: AccountProfile): void {
 }
 
 export function createProfile(input: {
+  username: string;
   entity: string;
   email: string;
   intent: string;
@@ -57,8 +73,12 @@ export function createProfile(input: {
   wallet?: string;
   tierInterest?: TierInterest;
 }): AccountProfile {
+  const validated = validateUsername(input.username);
+  if (!validated.ok) throw new Error(validated.error);
+
   const profile: AccountProfile = {
     ...input,
+    username: validated.username,
     correlationId: randomUUID(),
     createdAt: new Date().toISOString(),
     investorStep: 1,
@@ -82,4 +102,20 @@ export function maskEmail(email: string): string {
   const [user, domain] = email.split("@");
   if (!domain) return "***";
   return `${user!.slice(0, 2)}***@${domain}`;
+}
+
+export function linkWallet(address: string): AccountProfile {
+  const profile = loadProfile();
+  if (!profile) throw new Error("no profile — run clrt account create first");
+  profile.wallet = address.trim();
+  saveProfile(profile);
+  return profile;
+}
+
+export function updateInvestorStep(step: number): AccountProfile {
+  const profile = loadProfile();
+  if (!profile) throw new Error("no profile");
+  profile.investorStep = step;
+  saveProfile(profile);
+  return profile;
 }

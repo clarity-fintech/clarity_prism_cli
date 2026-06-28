@@ -17,6 +17,7 @@ export type FunnelId =
   | "config"
   | "commands"
   | "nodes"
+  | "wallet"
   | "updates";
 
 export interface FunnelCommand {
@@ -37,14 +38,14 @@ export const FUNNELS: Funnel[] = [
   {
     id: "home",
     label: "Home",
-    icon: "🏠",
+    icon: "",
     description: "PRISM terminal — select a funnel",
     commands: [],
   },
   {
     id: "prism",
     label: "PRISM Intelligence",
-    icon: "🔺",
+    icon: "",
     description: "Intent · prediction · PoR · cache · adversarial QA",
     commands: [
       { key: "query", label: "Intent query", hint: 'Type intent e.g. "arbitrage opportunities"' },
@@ -58,7 +59,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "helix",
     label: "HELIX Execution",
-    icon: "🌀",
+    icon: "",
     description: "Routing · simulation · MEV protection · swap execution",
     commands: [
       { key: "helix status", label: "Kernel status", hint: "Press Enter" },
@@ -70,7 +71,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "skills",
     label: "Skills Runtime",
-    icon: "📦",
+    icon: "",
     description: "Modular capital-aware execution — MCA · TSR · AVR · EHL",
     commands: [
       { key: "skill run", label: "market-arbitrage", hint: "Type capital e.g. 1000" },
@@ -82,7 +83,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "qa-trading",
     label: "QA Trading",
-    icon: "🧪",
+    icon: "",
     description: "Exchange QA · rate limits · dry-run probes",
     commands: [
       { key: "exchange probe binance", label: "Probe Binance", hint: "Dry-run connectivity check" },
@@ -94,7 +95,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "pipeline",
     label: "Full Pipeline",
-    icon: "⚡",
+    icon: "",
     description: "PRISM → HELIX → chain commit",
     commands: [
       { key: "pipeline", label: "Run full pipeline", hint: 'Type intent e.g. "optimize yield"' },
@@ -105,27 +106,30 @@ export const FUNNELS: Funnel[] = [
   {
     id: "chain",
     label: "Chain — clrty-1",
-    icon: "⛓️",
-    description: "clrty-1 L1 status · block height · attestations",
+    icon: "",
+    description: "clrty-1 L1 status · readiness gate · block height",
     commands: [
+      { key: "chain ready", label: "Chain ready gate", hint: "Press Enter for pass/fail matrix" },
       { key: "chain status", label: "Chain status", hint: "Press Enter for clrty-1 snapshot" },
-      { key: "chain blocks", label: "Recent blocks", hint: "Press Enter for block feed" },
+      { key: "chain indexer", label: "L1 indexer", hint: "Press Enter for indexer feed" },
     ],
   },
   {
     id: "commons",
     label: "Commons",
-    icon: "🌐",
-    description: "Shared resources · community packs · open datasets",
+    icon: "",
+    description: "Username P2P · CAS send · inbox · receive",
     commands: [
-      { key: "commons list", label: "List commons packs", hint: "Press Enter" },
-      { key: "commons sync", label: "Sync commons", hint: "Press Enter to pull latest" },
+      { key: "prism commons send", label: "Send to username", hint: "clrt prism commons send --to USER --file PATH" },
+      { key: "prism commons inbox", label: "Inbox", hint: "Press Enter for inbound transfers" },
+      { key: "prism commons receive", label: "Receive transfer", hint: "Type transfer id after inbox" },
+      { key: "prism commons discover", label: "Discover assets", hint: "Type topic to search" },
     ],
   },
   {
     id: "partner",
     label: "Partner Portal",
-    icon: "🤝",
+    icon: "",
     description: "Partner integrations · API keys · revenue share",
     commands: [
       { key: "partner status", label: "Partner status", hint: "Press Enter" },
@@ -135,7 +139,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "investor",
     label: "Investor Terminal",
-    icon: "💼",
+    icon: "",
     description: "Account onboarding · capital walkthrough · attestation",
     commands: [
       { key: "account status", label: "Account status", hint: "Press Enter for account snapshot" },
@@ -146,7 +150,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "settlement",
     label: "Settlement",
-    icon: "🏦",
+    icon: "",
     description: "Attestations · treasury · compliance genesis",
     commands: [
       { key: "settlement status", label: "Settlement status", hint: "Press Enter" },
@@ -156,7 +160,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "ledger",
     label: "Mini-Git Ledger",
-    icon: "📜",
+    icon: "",
     description: "Browser ledger · trace · validate · stats",
     commands: [
       { key: "trace", label: "Trace log", hint: "Press Enter" },
@@ -167,7 +171,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "integrations",
     label: "Integrations",
-    icon: "🧩",
+    icon: "",
     description: "PRISM → HELIX → indexer → settlement → intelligence",
     commands: [
       { key: "integrations", label: "Blockchain integrations", hint: "Press Enter for live snapshot" },
@@ -177,7 +181,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "identity",
     label: "Identity",
-    icon: "🪪",
+    icon: "",
     description: "Wallet · credentials · attestation identity",
     commands: [
       { key: "identity status", label: "Identity status", hint: "Press Enter" },
@@ -187,7 +191,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "governance",
     label: "Governance",
-    icon: "🏛️",
+    icon: "",
     description: "Proposals · overrides · compliance gates",
     commands: [
       { key: "governance status", label: "Governance status", hint: "Press Enter" },
@@ -197,7 +201,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "config",
     label: "Configuration",
-    icon: "⚙️",
+    icon: "",
     description: "API URL · API key · projects · environment",
     commands: [
       { key: "config api", label: "Set API URL & key", hint: "Press Enter to configure" },
@@ -207,7 +211,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "commands",
     label: "Command Runner",
-    icon: "⌨️",
+    icon: "",
     description: "Preview clrt commands with live output",
     commands: [
       { key: "prism query", label: "PRISM query — arbitrage scan" },
@@ -224,7 +228,7 @@ export const FUNNELS: Funnel[] = [
   {
     id: "nodes",
     label: "Nodes",
-    icon: "🖥️",
+    icon: "",
     description: "PRISM node mesh · runtime probes",
     commands: [
       { key: "nodes list", label: "List nodes", hint: "Press Enter" },
@@ -232,9 +236,22 @@ export const FUNNELS: Funnel[] = [
     ],
   },
   {
+    id: "wallet",
+    label: "CLRTY Wallet",
+    icon: "",
+    description: "Balance · registry · nodes · wallet connect",
+    commands: [
+      { key: "wallet status", label: "Wallet status", hint: "Press Enter for registry + username" },
+      { key: "wallet balance", label: "Balance", hint: "Press Enter for clrty-1 balance" },
+      { key: "wallet registry", label: "Registry", hint: "Press Enter for /v1/wallet/registry" },
+      { key: "wallet nodes", label: "Leverage nodes", hint: "Press Enter for 25-node manifest" },
+      { key: "wallet connect", label: "Connect wallet", hint: "clrt wallet connect --address 0x..." },
+    ],
+  },
+  {
     id: "updates",
     label: "Updates",
-    icon: "☁️",
+    icon: "",
     description: "Version check · release notes",
     commands: [
       { key: "updates check", label: "Check for updates", hint: "Press Enter" },

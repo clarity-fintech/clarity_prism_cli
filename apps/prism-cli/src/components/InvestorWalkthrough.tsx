@@ -1,14 +1,16 @@
 import { useState } from "react";
 import clsx from "clsx";
 
+const DRAFT_KEY = "prism-investor-account-draft";
+
 const STEPS = [
   {
     title: "Welcome — Investor Terminal",
     description: "This walkthrough guides capital partners through CLRTY onboarding, attestation, and settlement lanes.",
   },
   {
-    title: "Account verification",
-    description: "Confirm entity type (individual, fund, institution) and link primary contact email for attestation notices.",
+    title: "Account — choose username",
+    description: "Your username is your P2P identity on PRISM Commons (clrty://@username). Required for send/inbox and wallet connect.",
   },
   {
     title: "KYC / compliance gate",
@@ -50,8 +52,18 @@ interface InvestorWalkthroughProps {
 
 export default function InvestorWalkthrough({ onComplete }: InvestorWalkthroughProps) {
   const [step, setStep] = useState(0);
+  const [username, setUsername] = useState("");
+  const [entity, setEntity] = useState("");
+  const [email, setEmail] = useState("");
   const current = STEPS[step]!;
   const progress = ((step + 1) / STEPS.length) * 100;
+
+  const saveDraft = () => {
+    localStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({ username: username.trim().toLowerCase(), entity, email })
+    );
+  };
 
   return (
     <div className="funnel-panel investor-wizard">
@@ -71,6 +83,46 @@ export default function InvestorWalkthrough({ onComplete }: InvestorWalkthroughP
       </div>
       <div className="investor-step-title">{current.title}</div>
       <div className="investor-step-desc">{current.description}</div>
+
+      {step === 1 && (
+        <div className="investor-form" style={{ margin: "12px 0", display: "grid", gap: 8 }}>
+          <label>
+            Username (3–32, a-z 0-9 _ -)
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="alice"
+              style={{ display: "block", width: "100%", marginTop: 4 }}
+            />
+          </label>
+          <label>
+            Entity
+            <input
+              type="text"
+              value={entity}
+              onChange={(e) => setEntity(e.target.value)}
+              placeholder="Acme Capital"
+              style={{ display: "block", width: "100%", marginTop: 4 }}
+            />
+          </label>
+          <label>
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="a@acme.com"
+              style={{ display: "block", width: "100%", marginTop: 4 }}
+            />
+          </label>
+          <code style={{ fontSize: 11, color: "var(--muted)" }}>
+            clrt account create --username {username || "USER"} --entity "{entity || "Entity"}" --email{" "}
+            {email || "you@example.com"} --intent liquidity
+          </code>
+        </div>
+      )}
+
       <div className="investor-step-actions">
         <button
           type="button"
@@ -84,7 +136,11 @@ export default function InvestorWalkthrough({ onComplete }: InvestorWalkthroughP
           <button
             type="button"
             className="investor-btn primary"
-            onClick={() => setStep((s) => s + 1)}
+            onClick={() => {
+              if (step === 1) saveDraft();
+              setStep((s) => s + 1);
+            }}
+            disabled={step === 1 && (!username.trim() || username.trim().length < 3)}
           >
             Next
           </button>

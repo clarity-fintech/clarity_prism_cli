@@ -36,6 +36,29 @@ export interface ChainStatus {
   stateRoot: string;
 }
 
+export interface ChainReadyRow {
+  id: string;
+  label: string;
+  path: string;
+  pass: boolean;
+}
+
+export interface ChainReadyMatrix {
+  ready: boolean;
+  pass: number;
+  total: number;
+  matrix: ChainReadyRow[];
+}
+
+export interface WalletSnapshot {
+  username?: string;
+  namespace?: string;
+  linkedAddress?: string;
+  balance?: string;
+  registryMode: string;
+  registry?: Record<string, unknown>;
+}
+
 export interface SettlementStatus {
   mode: string;
   attestations: number;
@@ -264,8 +287,81 @@ export const CLI_COMMANDS: Record<string, string> = {
   "helix simulate": "clrt helix simulate swap --amount 500",
   "helix liquidity": "clrt helix liquidity scan SOL/USDC",
   "skill run": "clrt skill run market-arbitrage --capital 1000",
+  "chain status": "clrt chain status",
+  "chain ready": "clrt chain ready",
+  "chain indexer": "clrt chain indexer",
+  "wallet status": "clrt wallet status",
+  "wallet balance": "clrt wallet balance",
+  "wallet registry": "clrt wallet registry",
+  "wallet nodes": "clrt wallet nodes",
+  "wallet connect": "clrt wallet connect --address 0x...",
+  "prism commons send": "clrt prism commons send --to USER --file ./README.md",
+  "prism commons inbox": "clrt prism commons inbox",
+  "prism commons receive": "clrt prism commons receive TRANSFER_ID",
+  "prism commons discover": "clrt prism commons discover topic",
   pipeline: 'clrt run "optimize portfolio yield" --capital 5000',
 };
+
+/** clrty-1 chain readiness gate (mirrors clrt chain ready). */
+export async function fetchChainReady(): Promise<ChainReadyMatrix> {
+  const wallet = "local";
+  const probes = [
+    { id: "status", path: "/v1/status", label: "API status" },
+    { id: "indexer", path: "/v1/indexer/clrty-l1", label: "L1 indexer" },
+    { id: "sets", path: `/v1/sets/${encodeURIComponent(wallet)}`, label: "Set tier lookup" },
+    { id: "dx", path: "/v1/dx/primitives", label: "DX primitives" },
+  ] as const;
+
+  const results = await Promise.all(
+    probes.map(async (p) => {
+      const data = await apiFetch(p.path);
+      return { ...p, pass: data !== null };
+    })
+  );
+
+  const pass = results.filter((r) => r.pass).length;
+  return {
+    ready: pass === results.length,
+    pass,
+    total: results.length,
+    matrix: results.map(({ id, label, path, pass: ok }) => ({ id, label, path, pass: ok })),
+  };
+}
+
+/** Wallet registry + balance snapshot for Wallet funnel panel. */
+export async function fetchWalletRegistry(): Promise<WalletSnapshot> {
+  const registry = (await apiFetch("/v1/wallet/registry")) as Record<string, unknown> | null;
+  const account = (await apiFetch("/v1/account/status")) as {
+    username?: string;
+    wallet?: string;
+  } | null;
+
+  const username = account?.username;
+  const linkedAddress = account?.wallet;
+  let balance: string | undefined;
+  if (linkedAddress) {
+    balance = (await fetchWalletBalance(linkedAddress)).balance;
+  }
+
+  return {
+    username,
+    namespace: username ? `clrty://@${username}` : undefined,
+    linkedAddress,
+    balance,
+    registryMode: registry ? "live" : "local",
+    registry: registry ?? { chain: "clrty-1", mode: "local" },
+  };
+}
+
+export async function fetchWalletBalance(address: string): Promise<{ address: string; balance: string }> {
+  const remote = (await apiFetch(`/v1/wallet/balance/${encodeURIComponent(address)}`)) as {
+    balance?: string;
+  } | null;
+  if (remote?.balance !== undefined) {
+    return { address, balance: remote.balance };
+  }
+  return { address, balance: "0" };
+}
 
 /** clrty-1 chain snapshot (API or local stub). */
 export async function fetchChainStatus(): Promise<ChainStatus> {

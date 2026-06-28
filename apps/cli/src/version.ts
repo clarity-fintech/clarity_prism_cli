@@ -1,5 +1,5 @@
 /** Semantic release + micro counter (incremented on each CLI reprep within a patch). */
-export const CLRTY_VERSION = "1.0.1";
+export const CLRTY_VERSION = "1.0.2";
 export const CLRTY_MICRO = 1;
 
 export function versionLabel(): string {
@@ -7,13 +7,13 @@ export function versionLabel(): string {
 }
 
 export const CLRTY_RELEASE = {
-  codename: "Tier5-Enterprise",
-  date: "2026-06-28",
+  codename: "Wallet-P2P-Chain",
+  date: "2026-06-18",
   highlights: [
-    "Primitive registry + --json/--dry-run",
-    "clrty-1 chain commands",
-    "Passwordless account + investor settlement",
-    "QA exchange hub + antiban rate limits",
-    "Mastermind pack + 18 funnel terminal UI",
+    "Username P2P identity + commons send/inbox/receive",
+    "CLRTY Wallet funnel + clrt wallet commands",
+    "clrty-1 chain ready gate",
+    "Real pack downloads from CLRTY-WALLET-INTEGRATION",
+    "Cross-repo prism sync manifest",
   ],
 } as const;

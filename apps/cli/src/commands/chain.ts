@@ -70,6 +70,54 @@ export function registerChain(program: Command): void {
     });
 
   chain
+    .command("ready")
+    .option("--wallet <addr>", "wallet for sets probe")
+    .description("Unified clrty-1 readiness gate")
+    .action(async (opts: { wallet?: string }, cmd) => {
+      const flags = parentFlags(cmd);
+      header("CHAIN", "helix");
+      const base = getApiBaseUrl();
+      const wallet = opts.wallet ?? "local";
+
+      const probes = [
+        { id: "status", path: "/v1/status", label: "API status" },
+        { id: "indexer", path: "/v1/indexer/clrty-l1", label: "L1 indexer" },
+        { id: "sets", path: `/v1/sets/${encodeURIComponent(wallet)}`, label: "Set tier lookup" },
+        { id: "dx", path: "/v1/dx/primitives", label: "DX primitives" },
+      ] as const;
+
+      const results = await Promise.all(
+        probes.map(async (p) => {
+          const data = await apiFetch(base, p.path);
+          return {
+            id: p.id,
+            label: p.label,
+            path: p.path,
+            pass: data !== null,
+            data: data ?? { mode: "unavailable" },
+          };
+        })
+      );
+
+      const passCount = results.filter((r) => r.pass).length;
+      const ready = passCount === results.length;
+
+      done(ready ? "CHAIN READY" : "CHAIN NOT READY");
+      formatOutput(
+        {
+          chain: "clrty-1",
+          ready,
+          pass: passCount,
+          total: results.length,
+          matrix: results.map(({ id, label, path, pass }) => ({ id, label, path, pass })),
+          details: results,
+        },
+        flags.json
+      );
+      if (!ready && process.env.CLRTY_API_STRICT === "1") process.exit(1);
+    });
+
+  chain
     .command("devnet")
     .description("Local devnet status")
     .action(async (_opts, cmd) => {

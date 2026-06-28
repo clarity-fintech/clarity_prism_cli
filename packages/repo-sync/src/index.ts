@@ -14,12 +14,24 @@ export interface RepoPin {
 export interface RepoSyncManifest {
   version: number;
   updated: string;
+  prism_cli?: {
+    version: string;
+    micro?: number;
+    repo: string;
+    tag?: string;
+  };
   repos: RepoPin[];
 }
 
 const DEFAULT_MANIFEST: RepoSyncManifest = {
   version: 1,
-  updated: "2026-06-28",
+  updated: "2026-06-18",
+  prism_cli: {
+    version: "1.0.2",
+    micro: 1,
+    repo: "williamsnameiswill/clarity-prism-cli",
+    tag: "v1.0.2",
+  },
   repos: [
     {
       slug: "clarity-prism-cli",

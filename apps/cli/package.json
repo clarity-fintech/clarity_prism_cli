@@ -1,6 +1,6 @@
 {
   "name": "@clrt/cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CLRTY CLI — PRISM intelligence + HELIX execution operating system",
   "type": "module",
   "bin": {
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@clrt/account-profile": "1.0.0",
+    "@clrt/clarity-wallet": "1.0.0",
     "@clrt/commons-cas": "1.0.0",
     "@clrt/helix-core": "1.0.0",
     "@clrt/helix-protect": "1.0.0",

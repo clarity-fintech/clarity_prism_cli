@@ -6,6 +6,7 @@ import FunnelNav from "./FunnelNav";
 import SubMenu from "./SubMenu";
 import LinkPanel from "./LinkPanel";
 import ChainPanel from "./ChainPanel";
+import WalletPanel from "./WalletPanel";
 import QuantumSkillsPanel from "./QuantumSkillsPanel";
 import SettingsQAPanel from "./SettingsQAPanel";
 import InvestorWalkthrough from "./InvestorWalkthrough";
@@ -127,7 +128,11 @@ export default function Terminal() {
   useEffect(() => {
     setActiveIndex(0);
     setShowInvestorWizard(funnelId === "investor");
-  }, [funnelId]);
+    if (funnelId === "chain") {
+      enqueue("__system__ Chain funnel — running clrty-1 ready gate on enter.");
+      enqueue("__cmd__ chain ready");
+    }
+  }, [funnelId, enqueue]);
 
   const navigateFunnel = useCallback((id: FunnelId) => {
     setFunnelId(id);
@@ -306,6 +311,7 @@ export default function Terminal() {
   });
 
   const showChain = funnelId === "chain";
+  const showWallet = funnelId === "wallet";
   const showSkills = funnelId === "skills";
   const showQA = funnelId === "qa-trading";
   const showInvestor = funnelId === "investor" && showInvestorWizard;
@@ -316,6 +322,7 @@ export default function Terminal() {
       <Banner />
       <FunnelNav funnelId={funnelId} subLabel={subLabel} onNavigate={navigateFunnel} />
       {showChain && <ChainPanel />}
+      {showWallet && <WalletPanel />}
       {showSkills && <QuantumSkillsPanel />}
       {showQA && (
         <>

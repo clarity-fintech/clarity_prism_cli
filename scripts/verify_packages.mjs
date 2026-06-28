@@ -18,6 +18,7 @@ let failed = 0;
 console.log("Building workspace...");
 try {
   execSync("npm run build", { cwd: root, stdio: "inherit" });
+  execSync("npm run build:terminal", { cwd: root, stdio: "inherit" });
 } catch {
   process.exit(1);
 }
@@ -27,7 +28,9 @@ for (const dir of pkgDirs) {
   if (!existsSync(pkgPath)) continue;
   const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
   const distMain = join(dir, "dist", "index.js");
-  if (!existsSync(distMain)) {
+  const distHtml = join(dir, "dist", "index.html");
+  const ok = existsSync(distMain) || (pkg.name === "prism-cli" && existsSync(distHtml));
+  if (!ok) {
     console.error(`FAIL: missing dist for ${pkg.name}`);
     failed++;
   } else {

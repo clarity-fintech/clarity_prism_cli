@@ -1,11 +1,11 @@
 # CLI Reference — Complete Command Guide
 
 Global binary: **`clrt`**  
-Version: **1.0.1.μ1** (micro counter increments on each CLI reprep within a patch)
+Version: **1.0.2.μ1** (micro counter increments on each CLI reprep within a patch)
 
 ```bash
 clrt --help
-clrt --version          # prints 1.0.1.μ1
+clrt --version          # prints 1.0.2.μ1
 clrt version            # release notes + primitive count
 clrt version --json
 clrt <command> --help
@@ -15,16 +15,22 @@ clrt <command> --help
 
 ---
 
-## Command tree (v1.0.1)
+## Command tree (v1.0.2)
 
 ```
 clrt [--json] [--dry-run]
 ├── version
 ├── registry [--category System|Identity|Commons|Registry|Execution|Governance]
 ├── account
-│   ├── create [--entity] [--email] [--intent] [--cage] [--wallet] [--tier]
+│   ├── create --username <name> [--entity] [--email] [--intent] [--cage] [--wallet] [--tier]
 │   ├── login [--device-code]
 │   └── status
+├── wallet
+│   ├── status
+│   ├── balance [address]
+│   ├── registry
+│   ├── nodes
+│   └── connect --address <addr>
 ├── partner
 │   ├── request-access [--entity] [--intent]
 │   └── status
@@ -35,12 +41,13 @@ clrt [--json] [--dry-run]
 │   ├── confirm-deposit --wallet <addr> --tx-hash <hash>
 │   └── status [--wallet <addr>]
 ├── chain
+│   ├── ready [--wallet <addr>]
 │   ├── status
 │   ├── sets <address>
 │   ├── indexer
-│   ├── dx list|parse|execute
+│   ├── dx
 │   ├── simulate
-│   └── devnet status
+│   └── devnet
 ├── exchange
 │   ├── list
 │   ├── status [<slug>]
@@ -54,7 +61,7 @@ clrt [--json] [--dry-run]
 │   ├── init
 │   ├── sync [--repos]
 │   ├── identity --cage <ID>
-│   ├── commons get|put|discover|peers
+│   ├── commons get|put|send|inbox|receive|discover|peers
 │   ├── audit [--session <id>]
 │   ├── query <text>
 │   ├── queue status|submit
@@ -70,6 +77,34 @@ clrt [--json] [--dry-run]
 │   └── liquidity scan <pair>
 ├── skill install|run|status|locks
 └── run <intent> [--capital <n>]
+```
+
+### Username + P2P
+
+```bash
+clrt account create --username alice --entity "Acme" --email a@acme.com --intent liquidity
+clrt prism commons send --to bob --file ./README.md
+clrt prism commons inbox
+clrt prism commons receive <transfer-id>
+```
+
+### Chain ready gate
+
+```bash
+clrt chain ready
+clrt chain ready --wallet 0xabc... --json
+```
+
+Probes: `/v1/status`, `/v1/indexer/clrty-l1`, `/v1/sets/:wallet`, `/v1/dx/primitives`
+
+### Wallet
+
+```bash
+clrt wallet status
+clrt wallet registry
+clrt wallet balance
+clrt wallet connect --address 0x...
+clrt pack download wallet-integration
 ```
 
 ---

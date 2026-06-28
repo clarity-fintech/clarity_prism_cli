@@ -1,7 +1,7 @@
 {
   "name": "clarity-prism-cli",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CLRTY PRISM + HELIX download ecosystem — intelligence, execution, skills SDK, and CLI",
   "workspaces": [
     "packages/*",
@@ -12,7 +12,7 @@
     "build:terminal": "npm run build -w prism-cli",
     "dev:terminal": "node scripts/dev-terminal.mjs",
     "clean": "npm run clean --workspaces --if-present",
-    "verify": "node scripts/verify_packages.mjs"
+    "verify": "node scripts/verify_packages.mjs && node scripts/verify_cross_repo.mjs"
   },
   "engines": {
     "node": ">=18"

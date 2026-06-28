@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import { fetchChainStatus, type ChainStatus } from "../lib/prism-bridge";
+import { fetchChainStatus, fetchChainReady, type ChainStatus, type ChainReadyMatrix } from "../lib/prism-bridge";
 
 export default function ChainPanel() {
   const [status, setStatus] = useState<ChainStatus | null>(null);
+  const [ready, setReady] = useState<ChainReadyMatrix | null>(null);
 
   useEffect(() => {
+    void fetchChainReady().then(setReady);
     void fetchChainStatus().then(setStatus);
-    const id = setInterval(() => void fetchChainStatus().then(setStatus), 15000);
+    const id = setInterval(() => {
+      void fetchChainReady().then(setReady);
+      void fetchChainStatus().then(setStatus);
+    }, 15000);
     return () => clearInterval(id);
   }, []);
 
@@ -23,6 +28,24 @@ export default function ChainPanel() {
   return (
     <div className="funnel-panel">
       <div className="funnel-panel-title">clrty-1 chain status</div>
+      {ready && (
+        <div className="funnel-panel-grid" style={{ marginBottom: 12 }}>
+          <div className="funnel-card">
+            <div className="funnel-card-label">Ready gate</div>
+            <div className={clsx("funnel-card-value", ready.ready ? "ok" : "warn")}>
+              {ready.ready ? "PASS" : "PARTIAL"} ({ready.pass}/{ready.total})
+            </div>
+          </div>
+          {ready.matrix.map((row) => (
+            <div className="funnel-card" key={row.id}>
+              <div className="funnel-card-label">{row.label}</div>
+              <div className={clsx("funnel-card-value", row.pass ? "ok" : "warn")}>
+                {row.pass ? "ok" : "fail"}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="funnel-panel-grid">
         <div className="funnel-card">
           <div className="funnel-card-label">Chain ID</div>

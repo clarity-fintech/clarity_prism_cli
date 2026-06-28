@@ -5,7 +5,10 @@ import {
   loadSession,
   saveSession,
   maskEmail,
+  validateUsername,
+  usernameNamespace,
 } from "@clrt/account-profile";
+import { apiFetch, getApiBaseUrl } from "../lib/api-client.js";
 import { formatOutput, parseGlobalFlags, shouldDryRun } from "../middleware/json-dry-run.js";
 import { header, step, done } from "../theme.js";
 
@@ -14,6 +17,7 @@ export function registerAccount(program: Command): void {
 
   account
     .command("create")
+    .requiredOption("--username <name>", "unique username (P2P identity)")
     .requiredOption("--entity <name>", "entity name")
     .requiredOption("--email <email>", "contact email")
     .requiredOption("--intent <intent>", "session intent")
@@ -21,7 +25,8 @@ export function registerAccount(program: Command): void {
     .option("--wallet <wallet>", "wallet address")
     .option("--tier <tier>", "seed|strategic|hardware-node")
     .description("Create passwordless profile")
-    .action((opts: {
+    .action(async (opts: {
+      username: string;
       entity: string;
       email: string;
       intent: string;
@@ -33,12 +38,19 @@ export function registerAccount(program: Command): void {
       const flags = parseGlobalFlags(parent);
       header("ACCOUNT", "prism");
 
+      const v = validateUsername(opts.username);
+      if (!v.ok) {
+        formatOutput({ error: v.error }, flags.json);
+        process.exit(1);
+      }
+
       if (shouldDryRun(flags)) {
-        formatOutput({ dryRun: true, entity: opts.entity, email: maskEmail(opts.email) }, flags.json);
+        formatOutput({ dryRun: true, username: v.username, entity: opts.entity, email: maskEmail(opts.email) }, flags.json);
         return;
       }
 
       const profile = createProfile({
+        username: v.username,
         entity: opts.entity,
         email: opts.email,
         intent: opts.intent,
@@ -47,9 +59,19 @@ export function registerAccount(program: Command): void {
         tierInterest: opts.tier as "seed" | "strategic" | "hardware-node" | undefined,
       });
 
-      step(`Profile created for ${maskEmail(profile.email)}`);
+      await apiFetch(getApiBaseUrl(), "/v1/prism/account/register", {
+        method: "POST",
+        json: {
+          username: profile.username,
+          correlation_id: profile.correlationId,
+          entity: profile.entity,
+          email: profile.email,
+        },
+      });
+
+      step(`Profile created: @${profile.username} (${usernameNamespace(profile.username)})`);
       done("ACCOUNT CREATED");
-      formatOutput(profile, flags.json);
+      formatOutput({ ...profile, namespace: usernameNamespace(profile.username) }, flags.json);
     });
 
   account
@@ -80,7 +102,15 @@ export function registerAccount(program: Command): void {
       saveSession(session);
 
       done("LOGIN INITIATED");
-      formatOutput({ profile: { entity: profile.entity, correlationId: profile.correlationId }, session }, flags.json);
+      formatOutput({
+        profile: {
+          username: profile.username,
+          entity: profile.entity,
+          namespace: usernameNamespace(profile.username),
+          correlationId: profile.correlationId,
+        },
+        session,
+      }, flags.json);
     });
 
   account
@@ -98,7 +128,14 @@ export function registerAccount(program: Command): void {
       formatOutput(
         {
           profile: profile
-            ? { entity: profile.entity, email: maskEmail(profile.email), correlationId: profile.correlationId, investorStep: profile.investorStep }
+            ? {
+                username: profile.username,
+                namespace: usernameNamespace(profile.username),
+                entity: profile.entity,
+                email: maskEmail(profile.email),
+                correlationId: profile.correlationId,
+                investorStep: profile.investorStep,
+              }
             : null,
           session,
         },

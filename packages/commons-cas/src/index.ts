@@ -27,6 +27,24 @@ export interface CommonsPeer {
   lastSeen: string;
 }
 
+export interface OutboxEntry {
+  id: string;
+  toUsername: string;
+  cid: string;
+  fromUsername: string;
+  createdAt: string;
+  status: "queued" | "sent" | "failed";
+}
+
+export interface InboxTransfer {
+  id: string;
+  from_username: string;
+  to_username: string;
+  cid: string;
+  status: string;
+  created_at: string;
+}
+
 const BASE = join(homedir(), ".clrt", "prism", "commons");
 
 function ensureDir(): void {
@@ -41,6 +59,10 @@ function indexPath(): string {
   return join(BASE, "index.json");
 }
 
+function outboxPath(): string {
+  return join(BASE, "outbox.json");
+}
+
 function loadIndex(): CommonsAsset[] {
   const p = indexPath();
   if (!existsSync(p)) return [];
@@ -50,6 +72,17 @@ function loadIndex(): CommonsAsset[] {
 function saveIndex(assets: CommonsAsset[]): void {
   ensureDir();
   writeFileSync(indexPath(), JSON.stringify(assets, null, 2));
+}
+
+function loadOutbox(): OutboxEntry[] {
+  const p = outboxPath();
+  if (!existsSync(p)) return [];
+  return JSON.parse(readFileSync(p, "utf8")) as OutboxEntry[];
+}
+
+function saveOutbox(entries: OutboxEntry[]): void {
+  ensureDir();
+  writeFileSync(outboxPath(), JSON.stringify(entries, null, 2));
 }
 
 export class CommonsStore {
@@ -110,6 +143,32 @@ export class CommonsStore {
       },
     ];
   }
+
+  queueSend(fromUsername: string, toUsername: string, cid: string): OutboxEntry {
+    const entry: OutboxEntry = {
+      id: randomUUID(),
+      fromUsername,
+      toUsername: toUsername.trim().toLowerCase(),
+      cid,
+      createdAt: new Date().toISOString(),
+      status: "queued",
+    };
+    const outbox = loadOutbox();
+    outbox.push(entry);
+    saveOutbox(outbox);
+    return entry;
+  }
+
+  markOutboxSent(id: string): void {
+    const outbox = loadOutbox().map((e) =>
+      e.id === id ? { ...e, status: "sent" as const } : e
+    );
+    saveOutbox(outbox);
+  }
+
+  listOutbox(): OutboxEntry[] {
+    return loadOutbox();
+  }
 }
 
 export const defaultCommonsStore = new CommonsStore();
@@ -121,4 +180,36 @@ export function generateStubPeer(): CommonsPeer {
     topics: [],
     lastSeen: new Date().toISOString(),
   };
+}
+
+export type CommonsApiClient = {
+  postTransfer: (body: {
+    from_username: string;
+    to_username: string;
+    cid: string;
+    meta?: Record<string, unknown>;
+  }) => Promise<{ transfer?: { id: string } } | null>;
+  getInbox: (username: string) => Promise<{ transfers?: InboxTransfer[] } | null>;
+  postReceive: (body: { transfer_id: string; username: string }) => Promise<unknown>;
+};
+
+export async function sendToUser(
+  store: CommonsStore,
+  api: CommonsApiClient,
+  fromUsername: string,
+  toUsername: string,
+  filePath: string
+): Promise<{ asset: CommonsAsset; transferId?: string; queued?: OutboxEntry }> {
+  const asset = store.put(filePath, `p2p:${toUsername}`);
+  const result = await api.postTransfer({
+    from_username: fromUsername,
+    to_username: toUsername,
+    cid: asset.cid,
+    meta: { size: asset.size },
+  });
+  if (result?.transfer?.id) {
+    return { asset, transferId: result.transfer.id };
+  }
+  const queued = store.queueSend(fromUsername, toUsername, asset.cid);
+  return { asset, queued };
 }
