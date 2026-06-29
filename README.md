@@ -16,6 +16,8 @@ Standalone repo: https://github.com/williamsnameiswill/clarity-prism-cli
 
 **Query backlog:** Terminal UI and `clrt prism query` process **one prompt at a time** with automatic queueing for additional prompts (`clrt prism queue status`).
 
+**Terminal access gate:** The PRISM terminal UI (`npm run dev:terminal`) is **temporarily unavailable** for general users until public launch. Account creation remains open. Full terminal unlock requires **one of three entitlements** — investor settlement path, Volkov Mastermind First Access pack verify, or approved partner early access — plus an operator admin password override. Set `VITE_PRISM_TERMINAL_PUBLIC=1` to disable the gate for launch.
+
 ---
 
 ## Documentation

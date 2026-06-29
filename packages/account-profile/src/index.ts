@@ -5,6 +5,9 @@ import { randomUUID } from "node:crypto";
 
 export type TierInterest = "seed" | "strategic" | "hardware-node";
 
+export type PartnerStatus = "none" | "pending" | "approved" | "review";
+export type AccessTier = "blocked" | "account" | "entitled";
+
 export interface AccountProfile {
   username: string;
   entity: string;
@@ -16,6 +19,17 @@ export interface AccountProfile {
   correlationId: string;
   createdAt: string;
   investorStep: number;
+  partnerStatus?: PartnerStatus;
+  packVerified?: boolean;
+  investorClass?: string | null;
+  accessTier?: AccessTier;
+}
+
+export interface EntitlementsFile {
+  mastermind?: boolean;
+  verifiedAt?: string;
+  packId?: string;
+  sha256?: string;
 }
 
 export interface SessionToken {
@@ -118,4 +132,35 @@ export function updateInvestorStep(step: number): AccountProfile {
   profile.investorStep = step;
   saveProfile(profile);
   return profile;
+}
+
+export function getEntitlementsPath(): string {
+  return join(BASE, "entitlements.json");
+}
+
+export function loadEntitlements(): EntitlementsFile {
+  const p = getEntitlementsPath();
+  if (!existsSync(p)) return {};
+  return JSON.parse(readFileSync(p, "utf8")) as EntitlementsFile;
+}
+
+export function saveEntitlements(data: EntitlementsFile): void {
+  ensureDir();
+  writeFileSync(getEntitlementsPath(), JSON.stringify(data, null, 2));
+}
+
+export function setMastermindVerified(sha256?: string): EntitlementsFile {
+  const data: EntitlementsFile = {
+    mastermind: true,
+    packId: "mastermind",
+    verifiedAt: new Date().toISOString(),
+    sha256,
+  };
+  saveEntitlements(data);
+  const profile = loadProfile();
+  if (profile) {
+    profile.packVerified = true;
+    saveProfile(profile);
+  }
+  return data;
 }

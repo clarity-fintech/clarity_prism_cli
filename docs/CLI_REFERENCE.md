@@ -198,6 +198,40 @@ clrt run "optimize portfolio yield" --capital 5000 --json
 npm run build:terminal
 npm run dev:terminal
 # → http://localhost:5174
+
+### Terminal access gate
+
+Until public launch, the PRISM terminal blocks the main funnel UI (SubMenu, OutputPanel, command execution) behind an **Account Gate**. Account creation is always available.
+
+| Access state | UI |
+|--------------|-----|
+| `blocked` | Account create form only |
+| `account_created` | Account profile + unlock path CTAs |
+| `entitled` | Full terminal (investor / mastermind / partner) |
+| `admin` | Full terminal (operator password) |
+| `public_launch` | Full terminal (env bypass) |
+
+**Unlock paths (any one):**
+
+1. **Investor** — complete settlement walkthrough (`investor_class` via API)
+2. **Mastermind pack** — `clrt pack download mastermind && clrt pack verify mastermind`
+3. **Partner early access** — `clrt partner request-access` → API approval
+
+**Env vars (terminal build):**
+
+| Variable | Purpose |
+|----------|---------|
+| `VITE_PRISM_TERMINAL_PUBLIC=1` | Disable gate (public launch) |
+| `VITE_CLRTY_PRISM_ADMIN_PASS` | Operator override password (build-time) |
+| `CLRTY_DEV_PARTNER_APPROVED=1` | Dev API: auto-approve partner status |
+
+**API routes (entitlements):**
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/v1/account/status?username=` | GET | Account + entitlements payload |
+| `/v1/partner/request-access` | POST | Partner early access request |
+| `/v1/partner/status?correlation_id=` | GET | Partner approval status |
 ```
 
 Replace `clrt` with `npm run clrt --` when not globally installed.

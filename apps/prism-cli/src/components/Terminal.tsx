@@ -13,6 +13,8 @@ import InvestorWalkthrough from "./InvestorWalkthrough";
 import Prompt from "./Prompt";
 import StatusBar from "./StatusBar";
 import OutputPanel from "./OutputPanel";
+import LoadingShell from "./LoadingShell";
+import AccountGate from "./AccountGate";
 import {
   funnelNavItems,
   getFunnel,
@@ -38,6 +40,7 @@ import {
   saveSettings,
 } from "../lib/prism-bridge";
 import { useQueryQueue } from "../lib/useQueryQueue";
+import { resolveAccessState, type AccessState } from "../lib/access-gate";
 
 type Mode = "menu" | "chat" | "command" | "settings";
 
@@ -100,6 +103,27 @@ async function runPrompt(
 }
 
 export default function Terminal() {
+  const [access, setAccess] = useState<AccessState>("loading");
+
+  useEffect(() => {
+    void resolveAccessState().then((r) => setAccess(r.state));
+  }, []);
+
+  if (access === "loading") return <LoadingShell />;
+
+  if (access !== "entitled" && access !== "admin" && access !== "public_launch") {
+    return (
+      <AccountGate
+        access={access}
+        onEntitled={() => setAccess("entitled")}
+      />
+    );
+  }
+
+  return <TerminalInner />;
+}
+
+function TerminalInner() {
   const [funnelId, setFunnelId] = useState<FunnelId>("home");
   const [activeIndex, setActiveIndex] = useState(0);
   const [mode, setMode] = useState<Mode>("menu");
@@ -332,6 +356,7 @@ export default function Terminal() {
       )}
       {showInvestor && (
         <InvestorWalkthrough
+          skipAccountStep
           onComplete={() => {
             setShowInvestorWizard(false);
             enqueue("__system__ Investor walkthrough complete — account ready for shadow commits.");

@@ -26,11 +26,14 @@ export interface FunnelCommand {
   hint?: string;
 }
 
+export type AccessLevel = "public" | "account" | "entitled";
+
 export interface Funnel {
   id: FunnelId;
   label: string;
   icon: string;
   description: string;
+  requiresAccess?: AccessLevel;
   commands: FunnelCommand[];
 }
 
@@ -132,6 +135,7 @@ export const FUNNELS: Funnel[] = [
     label: "Partner Portal",
     icon: "",
     description: "Partner integrations · API keys · revenue share",
+    requiresAccess: "account",
     commands: [
       { key: "partner status", label: "Partner status", hint: "Press Enter" },
       { key: "partner keys", label: "API keys", hint: "Press Enter to list keys" },
@@ -142,6 +146,7 @@ export const FUNNELS: Funnel[] = [
     label: "Investor Terminal",
     icon: "",
     description: "Account onboarding · capital walkthrough · attestation",
+    requiresAccess: "account",
     commands: [
       { key: "account status", label: "Account status", hint: "Press Enter for account snapshot" },
       { key: "account kyc", label: "KYC status", hint: "Press Enter" },
@@ -153,6 +158,7 @@ export const FUNNELS: Funnel[] = [
     label: "Settlement",
     icon: "",
     description: "Attestations · treasury · compliance genesis",
+    requiresAccess: "account",
     commands: [
       { key: "settlement status", label: "Settlement status", hint: "Press Enter" },
       { key: "settlement attest", label: "List attestations", hint: "Press Enter" },
@@ -184,6 +190,7 @@ export const FUNNELS: Funnel[] = [
     label: "Identity",
     icon: "",
     description: "Wallet · credentials · attestation identity",
+    requiresAccess: "account",
     commands: [
       { key: "identity status", label: "Identity status", hint: "Press Enter" },
       { key: "identity wallet", label: "Linked wallets", hint: "Press Enter" },
@@ -265,8 +272,14 @@ export function getFunnel(id: FunnelId): Funnel {
   return FUNNELS.find((f) => f.id === id) ?? FUNNELS[0]!;
 }
 
-export function funnelNavItems(): Funnel[] {
-  return FUNNELS.filter((f) => f.id !== "home");
+export function funnelNavItems(access: "blocked" | "account" | "entitled" = "entitled"): Funnel[] {
+  return FUNNELS.filter((f) => {
+    if (f.id === "home") return false;
+    const level = f.requiresAccess ?? "entitled";
+    if (access === "entitled") return true;
+    if (access === "account") return level === "account" || level === "public";
+    return level === "public";
+  });
 }
 
 export function breadcrumbPath(funnelId: FunnelId, subLabel?: string): string {

@@ -72,7 +72,44 @@ export interface AccountStatus {
   kyc: "pending" | "verified" | "none";
   capitalAllocated: number;
   walletsLinked: number;
+  mode?: string;
+  username?: string;
+  namespace?: string;
+  correlationId?: string;
+  investorClass?: string | null;
+  partnerStatus?: string;
+  packVerified?: boolean;
+  entitlements?: {
+    investor?: boolean;
+    mastermind_pack?: boolean;
+    partner?: string;
+  };
 }
+
+export type BrowserAccountProfile = {
+  username: string;
+  entity: string;
+  email: string;
+  intent: string;
+  tierInterest?: string;
+  correlationId: string;
+  createdAt: string;
+  investorStep: number;
+  partnerStatus?: string;
+  packVerified?: boolean;
+  investorClass?: string | null;
+  accessTier?: "blocked" | "account" | "entitled";
+};
+
+export interface BrowserEntitlements {
+  mastermind?: boolean;
+  verifiedAt?: string;
+  packId?: string;
+  sha256?: string;
+}
+
+const PROFILE_KEY = "prism-account-profile";
+const ENTITLEMENTS_KEY = "prism-entitlements";
 
 export interface ExchangeLink {
   id: string;
@@ -119,6 +156,135 @@ export function loadSettings(): PrismSettings {
 
 export function saveSettings(s: PrismSettings): void {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
+
+export function loadBrowserProfile(): BrowserAccountProfile | null {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as BrowserAccountProfile;
+  } catch {
+    return null;
+  }
+}
+
+export function saveBrowserProfile(profile: BrowserAccountProfile): void {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+}
+
+export function loadBrowserEntitlements(): BrowserEntitlements {
+  try {
+    const raw = localStorage.getItem(ENTITLEMENTS_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as BrowserEntitlements;
+  } catch {
+    return {};
+  }
+}
+
+export function saveBrowserEntitlements(data: BrowserEntitlements): void {
+  localStorage.setItem(ENTITLEMENTS_KEY, JSON.stringify(data));
+}
+
+function newCorrelationId(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return `corr-${Date.now().toString(36)}`;
+}
+
+export async function registerAccount(input: {
+  username: string;
+  entity: string;
+  email: string;
+  intent: string;
+  tierInterest?: string;
+}): Promise<{ ok: boolean; profile?: BrowserAccountProfile; error?: string }> {
+  const username = input.username.trim().toLowerCase();
+  if (username.length < 3) return { ok: false, error: "invalid username" };
+
+  const profile: BrowserAccountProfile = {
+    username,
+    entity: input.entity,
+    email: input.email,
+    intent: input.intent,
+    tierInterest: input.tierInterest,
+    correlationId: newCorrelationId(),
+    createdAt: new Date().toISOString(),
+    investorStep: 1,
+    accessTier: "account",
+  };
+
+  const remote = await apiFetch("/v1/prism/account/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: profile.username,
+      correlation_id: profile.correlationId,
+      entity: profile.entity,
+      email: profile.email,
+    }),
+  });
+
+  if (remote && (remote as { ok?: boolean }).ok === false) {
+    return { ok: false, error: String((remote as { error?: string }).error ?? "register failed") };
+  }
+
+  saveBrowserProfile(profile);
+  return { ok: true, profile };
+}
+
+export async function requestPartnerAccessBrowser(): Promise<{ ok: boolean; status?: string }> {
+  const profile = loadBrowserProfile();
+  if (!profile) return { ok: false };
+
+  const remote = await apiFetch("/v1/partner/request-access", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      entity: profile.entity,
+      email: profile.email,
+      tier: profile.tierInterest ?? "seed",
+      correlation_id: profile.correlationId,
+    }),
+  });
+
+  if (remote) {
+    profile.partnerStatus = String((remote as { status?: string }).status ?? "pending");
+    saveBrowserProfile(profile);
+    return { ok: true, status: profile.partnerStatus };
+  }
+  profile.partnerStatus = "pending";
+  saveBrowserProfile(profile);
+  return { ok: true, status: "pending" };
+}
+
+export async function verifyMastermindPackBrowser(): Promise<{ ok: boolean; sha256?: string }> {
+  const manifestUrl =
+    "https://raw.githubusercontent.com/theangelofwill/-CLRTY/main/CLRTY_SUBSTRATE/boot/first_access_manifest.json";
+  try {
+    const res = await fetch(manifestUrl);
+    if (!res.ok) return { ok: false };
+    const text = await res.text();
+    const enc = new TextEncoder().encode(text);
+    const hash = await crypto.subtle.digest("SHA-256", enc);
+    const sha256 = Array.from(new Uint8Array(hash))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    saveBrowserEntitlements({
+      mastermind: true,
+      packId: "mastermind",
+      verifiedAt: new Date().toISOString(),
+      sha256,
+    });
+    const profile = loadBrowserProfile();
+    if (profile) {
+      profile.packVerified = true;
+      profile.accessTier = "entitled";
+      saveBrowserProfile(profile);
+    }
+    return { ok: true, sha256 };
+  } catch {
+    return { ok: false };
+  }
 }
 
 interface StoredEvent {
@@ -432,14 +598,55 @@ export async function fetchSettlementStatus(): Promise<SettlementStatus> {
 }
 
 /** Investor / account snapshot. */
-export async function fetchAccountStatus(): Promise<AccountStatus> {
-  const remote = (await apiFetch("/v1/account/status")) as Partial<AccountStatus> | null;
+export async function fetchAccountStatus(username?: string): Promise<AccountStatus> {
+  const profile = loadBrowserProfile();
+  const qs = username ?? profile?.username;
+  const path = qs ? `/v1/account/status?username=${encodeURIComponent(qs)}` : "/v1/account/status";
+  const remote = (await apiFetch(path)) as Partial<AccountStatus> & Record<string, unknown> | null;
+
+  if (remote?.mode === "live" || remote?.username) {
+    const ent = remote.entitlements as AccountStatus["entitlements"] | undefined;
+    return {
+      id: String(remote.correlation_id ?? remote.correlationId ?? profile?.correlationId ?? "local-session"),
+      tier: remote.investor_class ? String(remote.investor_class) : "registered",
+      kyc: remote.investor_class ? "verified" : "none",
+      capitalAllocated: Number(remote.capitalAllocated ?? 0),
+      walletsLinked: remote.wallet ? 1 : 0,
+      mode: String(remote.mode ?? "live"),
+      username: remote.username as string | undefined,
+      namespace: remote.namespace as string | undefined,
+      correlationId: (remote.correlation_id ?? remote.correlationId) as string | undefined,
+      investorClass: (remote.investor_class as string | null) ?? null,
+      partnerStatus: String(remote.partner_status ?? ent?.partner ?? "none"),
+      packVerified: Boolean(remote.pack_verified ?? ent?.mastermind_pack ?? profile?.packVerified),
+      entitlements: ent,
+    };
+  }
+
+  if (profile) {
+    const localEnt = loadBrowserEntitlements();
+    return {
+      id: profile.correlationId,
+      tier: profile.tierInterest ?? "account",
+      kyc: "none",
+      capitalAllocated: 0,
+      walletsLinked: 0,
+      mode: "local",
+      username: profile.username,
+      namespace: `clrty://@${profile.username}`,
+      correlationId: profile.correlationId,
+      partnerStatus: profile.partnerStatus ?? "none",
+      packVerified: Boolean(profile.packVerified ?? localEnt.mastermind),
+    };
+  }
+
   return {
-    id: remote?.id ?? "local-session",
-    tier: remote?.tier ?? "shadow",
-    kyc: remote?.kyc ?? "none",
-    capitalAllocated: remote?.capitalAllocated ?? 0,
-    walletsLinked: remote?.walletsLinked ?? 0,
+    id: "local-session",
+    tier: "none",
+    kyc: "none",
+    capitalAllocated: 0,
+    walletsLinked: 0,
+    mode: "local",
   };
 }
 

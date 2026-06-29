@@ -206,3 +206,166 @@
 .investor-dot.current {
   background: var(--cyan);
 }
+
+/* Account access gate */
+.account-gate {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.account-gate-loading {
+  max-width: 480px;
+  margin: 48px auto;
+  text-align: center;
+}
+
+.account-gate-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.account-gate-badge {
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: 3px;
+  padding: 2px 8px;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+.account-gate-version,
+.account-gate-api {
+  color: var(--muted);
+}
+
+.account-gate-title {
+  font-size: 18px;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.account-gate-sub {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.account-section .account-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.account-section .account-form input,
+.account-section .account-form select {
+  background: rgba(4, 11, 21, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--cyan);
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.account-created-panel {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.account-cli-hint {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  margin-top: 4px;
+  word-break: break-all;
+}
+
+.account-gate-msg {
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.account-gate-msg.ok {
+  color: var(--green);
+  border: 1px solid rgba(68, 255, 136, 0.3);
+  background: rgba(68, 255, 136, 0.06);
+}
+
+.account-gate-msg.err {
+  color: var(--red);
+  border: 1px solid rgba(255, 96, 96, 0.3);
+  background: rgba(255, 96, 96, 0.06);
+}
+
+.account-unlock-paths {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.account-unlock-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.account-unlock-list li {
+  font-size: 13px;
+  color: var(--white);
+  line-height: 1.5;
+}
+
+.account-unlock-list code {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.account-unlock-list .investor-btn {
+  margin: 6px 8px 0 0;
+}
+
+.account-admin-panel {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.account-admin-panel input {
+  flex: 1;
+  background: rgba(4, 11, 21, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--cyan);
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.account-status-json {
+  font-size: 11px;
+  color: var(--muted);
+  background: rgba(4, 11, 21, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 10px;
+  overflow: auto;
+  max-height: 200px;
+}

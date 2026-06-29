@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { setMastermindVerified } from "@clrt/account-profile";
 import { formatOutput, parseGlobalFlags, shouldDryRun } from "../middleware/json-dry-run.js";
 import { header, done } from "../theme.js";
 
@@ -73,6 +74,9 @@ export function registerPack(program: Command): void {
       try {
         const { bytes, sha256 } = await downloadToFile(found.url, dest);
         const shaOk = found.sha256 ? found.sha256 === sha256 : null;
+        if (found.id === "mastermind") {
+          setMastermindVerified(sha256);
+        }
         done("DOWNLOAD COMPLETE");
         formatOutput(
           {
@@ -114,6 +118,10 @@ export function registerPack(program: Command): void {
       const buf = readFileSync(dest);
       const sha256 = createHash("sha256").update(buf).digest("hex");
       const valid = found.sha256 ? found.sha256 === sha256 : true;
+
+      if (valid && found.id === "mastermind") {
+        setMastermindVerified(sha256);
+      }
 
       done(valid ? "VERIFY COMPLETE" : "VERIFY FAILED");
       formatOutput(

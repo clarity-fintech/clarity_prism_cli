@@ -775,12 +775,71 @@ bash npm-install-local.sh
 
 ---
 
+## Terminal access gate
+
+The PRISM terminal UI blocks general access until public launch. **`clrt account create` is never gated.**
+
+```bash
+npm run build:terminal
+npm run dev:terminal   # http://localhost:5174
+```
+
+| State | Who sees it |
+|-------|-------------|
+| Blocked shell | Visitors without account |
+| Account created | Registered users awaiting entitlement |
+| Full terminal | Investor, Mastermind pack, approved partner, admin, or public launch |
+
+**Unlock (any one path):**
+
+```bash
+# Investor — settlement walkthrough in terminal UI
+clrt settlement register --wallet 0x...
+clrt settlement confirm-deposit --tx 0x... --wallet 0x...
+
+# Mastermind First Access pack
+clrt pack download mastermind
+clrt pack verify mastermind    # writes ~/.clrt/prism/entitlements.json
+
+# Partner early access
+clrt partner request-access --entity "Acme" --tier seed
+clrt partner status
+```
+
+**Terminal env vars:**
+
+| Variable | Effect |
+|----------|--------|
+| `VITE_PRISM_TERMINAL_PUBLIC=1` | Disable gate (public launch) |
+| `VITE_CLRTY_PRISM_ADMIN_PASS` | Operator admin unlock (Vite build-time) |
+| `CLRTY_DEV_PARTNER_APPROVED=1` | API dev: auto-approve partner requests |
+
+**API entitlement fields** (`GET /v1/account/status?username=`):
+
+```json
+{
+  "entitlements": {
+    "investor": false,
+    "mastermind_pack": false,
+    "partner": "pending"
+  },
+  "investor_class": null,
+  "partner_status": "pending",
+  "pack_verified": false
+}
+```
+
+---
+
 ## Environment variables
 
 | Variable | Effect |
 |----------|--------|
 | `CLRTY_API_URL` | API base (default `http://127.0.0.1:8545`) |
 | `CLRTY_API_KEY` | Bearer token for API |
+| `VITE_PRISM_TERMINAL_PUBLIC` | `1` = disable terminal access gate |
+| `VITE_CLRTY_PRISM_ADMIN_PASS` | Operator password for terminal admin unlock |
+| `CLRTY_DEV_PARTNER_APPROVED` | `1` = API auto-approves partner requests (dev) |
 | `CLRTY_VERIFY_STRICT=1` | Fail verify if API unreachable |
 | `CLRTY_API_STRICT=1` | Exit 1 on `chain ready` failure |
 | `PRISM_REPO_DIR` | Custom mini-git ledger path |

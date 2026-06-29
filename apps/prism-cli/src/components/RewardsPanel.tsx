@@ -28,17 +28,23 @@ const TIERS = [
 interface RewardsPanelProps {
   tier?: string;
   allocationConfirmed?: boolean;
+  packVerified?: boolean;
 }
 
-export default function RewardsPanel({ tier = "seed", allocationConfirmed = false }: RewardsPanelProps) {
+export default function RewardsPanel({
+  tier = "seed",
+  allocationConfirmed = false,
+  packVerified = false,
+}: RewardsPanelProps) {
   const selected = TIERS.find((t) => t.id === tier) ?? TIERS[0]!;
+  const unlocked = allocationConfirmed || packVerified;
 
   return (
     <div className="funnel-panel rewards-panel">
       <div className="funnel-panel-title">Allocated rewards and benefits</div>
-      {!allocationConfirmed && (
+      {!unlocked && (
         <div className="funnel-panel-desc" style={{ marginBottom: 8, color: "var(--muted)" }}>
-          Preview — complete settlement confirm-deposit (Step 9) to unlock Mastermind pack.
+          Preview — verify Mastermind pack or complete settlement to unlock.
         </div>
       )}
       <div className="funnel-panel-grid">
@@ -58,8 +64,8 @@ export default function RewardsPanel({ tier = "seed", allocationConfirmed = fals
         </div>
         <div className="funnel-card">
           <div className="funnel-card-label">Mastermind pack</div>
-          <div className={allocationConfirmed ? "funnel-card-value ok" : "funnel-card-value"}>
-            {allocationConfirmed ? "UNLOCKED" : "locked"}
+          <div className={unlocked ? "funnel-card-value ok" : "funnel-card-value"}>
+            {unlocked ? "UNLOCKED" : "locked"}
           </div>
         </div>
       </div>
@@ -69,7 +75,7 @@ export default function RewardsPanel({ tier = "seed", allocationConfirmed = fals
         ))}
         <li>First Access Pack · 28 AP-* access packs via clrt pack list</li>
       </ul>
-      {allocationConfirmed && (
+      {unlocked && (
         <code style={{ display: "block", marginTop: 8, fontSize: 11 }}>
           clrt pack download mastermind && clrt pack download wallet-integration
         </code>
