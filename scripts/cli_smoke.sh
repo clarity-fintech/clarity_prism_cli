@@ -30,4 +30,9 @@ run skill locks
 
 run run "optimize portfolio yield" --capital 5000
 
+run --dry-run account create --username smoke_test --entity "Smoke" --email smoke@test.com --intent liquidity
+run chain ready --json
+run wallet registry --json
+run --dry-run prism commons send --to bob --file "$ROOT/README.md"
+
 echo "OK: CLI smoke passed"

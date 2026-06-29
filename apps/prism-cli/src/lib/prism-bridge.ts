@@ -90,14 +90,31 @@ export interface QuantumSkillCard {
   summary: string;
 }
 
+const DEFAULT_API_URL = "http://127.0.0.1:8545";
+
 export function loadSettings(): PrismSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) return { apiUrl: "", apiKey: "", ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<PrismSettings>;
+      return {
+        apiUrl: parsed.apiUrl || DEFAULT_API_URL,
+        apiKey: parsed.apiKey ?? "",
+        qaRateLimitRps: parsed.qaRateLimitRps ?? 10,
+        qaRateLimitBurst: parsed.qaRateLimitBurst ?? 20,
+        exchangeQaDryRun: parsed.exchangeQaDryRun ?? true,
+      };
+    }
   } catch {
     /* ignore */
   }
-  return { apiUrl: "", apiKey: "", qaRateLimitRps: 10, qaRateLimitBurst: 20, exchangeQaDryRun: true };
+  return {
+    apiUrl: DEFAULT_API_URL,
+    apiKey: "",
+    qaRateLimitRps: 10,
+    qaRateLimitBurst: 20,
+    exchangeQaDryRun: true,
+  };
 }
 
 export function saveSettings(s: PrismSettings): void {

@@ -1,5 +1,7 @@
 # CLI Reference — Complete Command Guide
 
+> **Canonical command list:** [ALL_COMMANDS.md](./ALL_COMMANDS.md) — every `clrt` command, flag, and copy-paste example (v1.0.2.μ1).
+
 Global binary: **`clrt`**  
 Version: **1.0.2.μ1** (micro counter increments on each CLI reprep within a patch)
 
@@ -12,6 +14,193 @@ clrt <command> --help
 ```
 
 **Global flags:** `--json` · `--dry-run`
+
+---
+
+## Full stack — start blockchain + CLI (copy-paste)
+
+Run from the **monorepo** and **prism-cli repo root** (never `clarity-prism-cli/clarity-prism-cli/`).
+
+### Terminal 1 — blockchain API (required for live mode)
+
+```bash
+cd /Users/william/\$CLRTY_PROJECT
+cargo run -p clrty-api
+# → clrty-api listening on http://127.0.0.1:8545/
+```
+
+Or auto-start if not running:
+
+```bash
+cd clarity-prism-cli
+bash scripts/ensure_api_running.sh
+```
+
+### Terminal 2 — build, verify, and run CLI
+
+```bash
+cd /Users/william/\$CLRTY_PROJECT/clarity-prism-cli
+npm install
+npm run build
+
+# One-shot: build + ensure API + strict verify + smoke
+make live
+
+# Or step-by-step:
+make live-verify          # ensure API + CLRTY_VERIFY_STRICT=1 verify + smoke
+make verify               # packages + cross-repo + smoke (API optional)
+CLRTY_VERIFY_STRICT=1 npm run verify   # fail if API endpoints unreachable
+
+# Global install (optional)
+bash npm-install-local.sh
+# Without global install:
+npm run clrt -- <command>
+./bin/clrt <command>
+```
+
+### Environment
+
+```bash
+export CLRTY_API_URL=http://127.0.0.1:8545
+export CLRTY_API_KEY=your_key          # if required
+export CLRTY_VERIFY_STRICT=1           # strict cross-repo verify
+export CLRTY_API_STRICT=1              # exit 1 on chain ready failure
+```
+
+### Live API endpoints (clrty-api :8545)
+
+| Endpoint | Method | Used by |
+|----------|--------|---------|
+| `/v1/status` | GET | `clrt chain status`, `chain ready` |
+| `/v1/indexer/clrty-l1` | GET | `clrt chain indexer` |
+| `/v1/sets/:wallet` | GET | `clrt chain sets` |
+| `/v1/dx/primitives` | GET | `clrt chain dx list`, `chain ready` |
+| `/v1/dx/parse` | POST | `clrt chain dx parse` |
+| `/v1/dx/execute` | POST | `clrt chain dx execute`, `chain transfer` |
+| `/v1/sim/events` | GET | `clrt chain simulate` |
+| `/v1/wallet/registry` | GET | `clrt wallet registry` |
+| `/v1/wallet/nodes` | GET | `clrt wallet nodes` |
+| `/v1/wallet/register` | POST | `clrt wallet connect` |
+| `/v1/wallet/balance/:wallet` | GET | `clrt wallet balance`, terminal WalletPanel |
+| `/v1/prism/account/register` | POST | `clrt account create` |
+| `/v1/account/status` | GET | terminal UI account probe |
+| `/v1/commons/send` | POST | `clrt prism commons send` |
+| `/v1/commons/inbox/:user` | GET | `clrt prism commons inbox` |
+| `/v1/compliance/*` | GET/POST | `clrt settlement *` |
+
+---
+
+## End-to-end live workflow (all commands)
+
+```bash
+# ── 0. Preflight ─────────────────────────────────────────────
+curl -s http://127.0.0.1:8545/v1/status | jq .
+clrt chain ready --json
+clrt version --json
+clrt registry --json
+
+# ── 1. Account (username P2P identity) ───────────────────────
+clrt account create \
+  --username alice \
+  --entity "Acme Capital" \
+  --email ops@acme.com \
+  --intent liquidity \
+  --json
+
+clrt account status --json
+clrt account login --device --json          # PKCE/device stub
+
+# ── 2. Wallet (registry + MLX link) ──────────────────────────
+clrt wallet status --json
+clrt wallet registry --json
+clrt wallet nodes --json
+clrt wallet connect \
+  --address 0x1234567890123456789012345678901234567890 \
+  --json
+clrt wallet balance --json
+clrt wallet balance 0x1234567890123456789012345678901234567890 --json
+
+# ── 3. Chain (clrty-1) ─────────────────────────────────────────
+clrt chain status --json
+clrt chain indexer --chain clrty-l1 --json
+clrt chain sets local --json
+clrt chain sets 0x1234567890123456789012345678901234567890 --json
+clrt chain dx list --json
+clrt chain dx parse --input '{"intent":"liquidity"}' --json
+clrt chain dx execute --slug intent_execute --input '{}' --json
+clrt chain transfer --wallet 0xabc... --amount 1000 --json
+clrt chain simulate --events 10 --json
+clrt chain devnet --json
+clrt chain ready --wallet 0x1234567890123456789012345678901234567890 --json
+
+# ── 4. P2P Commons (username send/receive) ───────────────────
+clrt prism commons put ./README.md --json
+clrt prism commons send --to bob --file ./README.md --json
+clrt prism commons inbox --json
+clrt prism commons receive <transfer-id> --json
+clrt prism commons get <cid> --json
+clrt prism commons discover arbitrage --json
+clrt prism commons peers --json
+
+# ── 5. PRISM intelligence ──────────────────────────────────────
+clrt prism init --json
+clrt prism sync --json
+clrt prism identity --cage 123456789 --json
+clrt prism query "arbitrage opportunities" --json
+clrt prism queue status --json
+clrt prism predict --capital 1000 --json
+clrt prism cache status --json
+clrt prism validate --intent arbitrage_scan --capital 1000 --json
+clrt prism trace -n 20 --json
+clrt prism stats --json
+clrt prism estimate --capital 1000 --json
+clrt prism execute --intent arbitrage_scan --json
+clrt prism snapshot --json
+clrt prism audit --json
+
+# ── 6. HELIX execution ─────────────────────────────────────────
+clrt helix status --json
+clrt helix execute swap --from SOL --to USDC --amount 1000 --json
+clrt helix simulate swap --amount 500 --json
+clrt helix liquidity scan SOL/USDC --json
+
+# ── 7. Skills ──────────────────────────────────────────────────
+clrt skill install market-arbitrage
+clrt skill run market-arbitrage --capital 1000 --max-exposure 0.2 --json
+clrt skill status --json
+clrt skill locks --json
+
+# ── 8. Settlement + investor ───────────────────────────────────
+clrt settlement instructions --json
+clrt settlement register --wallet 0xabc... --json
+clrt settlement preview --usd-cents 500000 --json
+clrt settlement confirm-deposit --tx 0xdef... --wallet 0xabc... --json
+clrt settlement status --wallet 0xabc... --json
+clrt partner request-access --entity "Acme" --intent liquidity --json
+clrt partner status --json
+
+# ── 9. Exchange QA hub ─────────────────────────────────────────
+clrt exchange list --json
+clrt exchange status binance --json
+clrt exchange test binance --json
+clrt exchange qa --dry-run --json
+
+# ── 10. Access packs ───────────────────────────────────────────
+clrt pack list --json
+clrt pack download mastermind --json
+clrt pack download wallet-integration --json
+clrt pack verify mastermind --json
+
+# ── 11. Full pipeline ──────────────────────────────────────────
+clrt run "optimize portfolio yield" --capital 5000 --json
+
+# ── 12. Terminal UI (Wallet + Chain panels → :8545) ─────────────
+npm run build:terminal
+npm run dev:terminal
+# → http://localhost:5174
+```
+
+Replace `clrt` with `npm run clrt --` when not globally installed.
 
 ---
 
@@ -38,15 +227,16 @@ clrt [--json] [--dry-run]
 │   ├── instructions
 │   ├── register --wallet <addr>
 │   ├── preview [--usd-cents <n>]
-│   ├── confirm-deposit --wallet <addr> --tx-hash <hash>
+│   ├── confirm-deposit --tx <hash> [--wallet <addr>]
 │   └── status [--wallet <addr>]
 ├── chain
 │   ├── ready [--wallet <addr>]
 │   ├── status
-│   ├── sets <address>
-│   ├── indexer
-│   ├── dx
-│   ├── simulate
+│   ├── sets [address]
+│   ├── indexer [--chain clrty-l1]
+│   ├── dx list|parse|execute
+│   ├── transfer [--wallet] [--amount]
+│   ├── simulate [--events <n>]
 │   └── devnet
 ├── exchange
 │   ├── list
@@ -61,7 +251,7 @@ clrt [--json] [--dry-run]
 │   ├── init
 │   ├── sync [--repos]
 │   ├── identity --cage <ID>
-│   ├── commons get|put|send|inbox|receive|discover|peers
+│   ├── commons put|send|inbox|receive|get|discover|peers
 │   ├── audit [--session <id>]
 │   ├── query <text>
 │   ├── queue status|submit
@@ -69,7 +259,10 @@ clrt [--json] [--dry-run]
 │   ├── cache status
 │   ├── validate [--claim] [--intent] [--capital]
 │   ├── trace [-n <num>]
-│   └── stats
+│   ├── stats
+│   ├── estimate [--capital <n>]
+│   ├── execute [--intent]
+│   └── snapshot
 ├── helix
 │   ├── status
 │   ├── execute swap --from --to --amount
@@ -79,14 +272,19 @@ clrt [--json] [--dry-run]
 └── run <intent> [--capital <n>]
 ```
 
-### Username + P2P
+### Username + P2P + wallet (live)
 
 ```bash
+# Requires clrty-api on :8545
 clrt account create --username alice --entity "Acme" --email a@acme.com --intent liquidity
+clrt wallet connect --address 0x1234567890123456789012345678901234567890
+clrt wallet registry --json
 clrt prism commons send --to bob --file ./README.md
 clrt prism commons inbox
 clrt prism commons receive <transfer-id>
 ```
+
+Offline: account/wallet/commons queue locally to `~/.clrt/prism/` when API is down.
 
 ### Chain ready gate
 
@@ -102,10 +300,13 @@ Probes: `/v1/status`, `/v1/indexer/clrty-l1`, `/v1/sets/:wallet`, `/v1/dx/primit
 ```bash
 clrt wallet status
 clrt wallet registry
+clrt wallet nodes
 clrt wallet balance
 clrt wallet connect --address 0x...
 clrt pack download wallet-integration
 ```
+
+Terminal UI WalletPanel auto-targets `http://127.0.0.1:8545` (override via settings).
 
 ---
 
@@ -549,14 +750,28 @@ See [ENVIRONMENT.md](./ENVIRONMENT.md) for full reference.
 
 ---
 
-## v1.0.1 commands (summary)
+## Verify & Makefile
+
+```bash
+make verify        # packages + inventory + cross-repo + CLI smoke
+make live          # npm run build + ensure API + strict verify + smoke
+make live-verify   # ensure clrty-api + CLRTY_VERIFY_STRICT=1 verify + smoke
+make cli-smoke     # run scripts/cli_smoke.sh
+make build-kit     # dist/clarity-prism-full.zip
+bash scripts/ensure_api_running.sh
+```
+
+---
+
+## v1.0.2 command groups (summary)
 
 | Group | Purpose |
 |-------|---------|
 | `clrt account` | Passwordless profile (no password stored) |
 | `clrt partner` | Early Access / Mastermind request |
 | `clrt settlement` | Genesis deposit on clrty-1 (`/v1/compliance/*`) |
-| `clrt chain` | clrty-1 status, sets, indexer, DX primitives |
+| `clrt wallet` | Registry, nodes, balance, MLX connect (`/v1/wallet/*`) |
+| `clrt chain` | clrty-1 status, sets, indexer, DX, transfer, ready gate |
 | `clrt exchange` | QA hub — Binance, Coinbase, Kraken + antiban rate limits |
 | `clrt pack` | Mastermind + wallet-integration ZIPs |
 | `clrt prism init\|sync\|commons\|audit` | Registry, P2P commons, compliance export |

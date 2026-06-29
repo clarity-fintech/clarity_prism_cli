@@ -1,4 +1,11 @@
 import { appendEvent } from "@clrt/prism-core";
+import {
+  requestPartnerAccess,
+  getPartnerAccessStatus,
+  type PartnerAccessRequest,
+  type PartnerAccessResult,
+  type PartnerAccessStatus,
+} from "./partner-access.js";
 
 export interface SkillContext {
   capital?: number;
@@ -44,6 +51,20 @@ const handlers: Record<string, SkillHandler> = {
       within_limits: true,
     },
   }),
+  "partner-access-skill": async (ctx) => {
+    const entity = String(ctx.entity ?? "unknown");
+    const result = await requestPartnerAccess({
+      entity,
+      email: ctx.email as string | undefined,
+      tier: ctx.tier as string | undefined,
+      correlationId: ctx.correlationId as string | undefined,
+    });
+    return {
+      skill: "partner-access-skill",
+      status: "ok",
+      output: result as unknown as Record<string, unknown>,
+    };
+  },
 };
 
 let activeLock: string | null = null;
@@ -101,6 +122,7 @@ export function resolveSkillName(short: string): string {
     "trend-momentum": "trend-momentum-skill",
     "payment-executor": "payment-executor-skill",
     "risk-manager": "risk-manager-skill",
+    "partner-access": "partner-access-skill",
   };
   return map[short] ?? short;
 }

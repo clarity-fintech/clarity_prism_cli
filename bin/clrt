@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Local clrt wrapper — use from repo root without global npm install.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+CLI="$ROOT/apps/cli/dist/index.js"
+if [[ ! -f "$CLI" ]]; then
+  echo "clrt: build first — npm run build" >&2
+  exit 1
+fi
+exec node "$CLI" "$@"

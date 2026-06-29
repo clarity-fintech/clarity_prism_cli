@@ -46,15 +46,89 @@ export function registerChain(program: Command): void {
       formatOutput(data ?? { chain: opts.chain, mode: "local" }, flags.json);
     });
 
-  chain
-    .command("dx")
-    .description("DX primitives catalog")
+  const dx = chain.command("dx").description("Developer DX primitives (list | parse | execute)");
+
+  dx
+    .command("list")
+    .description("List DX primitives catalog")
     .action(async (_opts, cmd) => {
       const flags = parentFlags(cmd);
       header("CHAIN", "helix");
       const data = await apiFetch(getApiBaseUrl(), "/v1/dx/primitives");
-      done("DX PRIMITIVES READY");
+      done("DX LIST READY");
       formatOutput(data ?? { primitives: [], mode: "local" }, flags.json);
+    });
+
+  dx
+    .command("parse")
+    .requiredOption("--input <json>", "DX payload JSON")
+    .description("Parse DX trigger payload")
+    .action(async (opts: { input: string }, cmd) => {
+      const flags = parentFlags(cmd);
+      header("CHAIN", "helix");
+      let body: unknown;
+      try {
+        body = JSON.parse(opts.input);
+      } catch {
+        formatOutput({ error: "invalid JSON input" }, flags.json);
+        process.exit(1);
+      }
+      const data = await apiFetch(getApiBaseUrl(), "/v1/dx/parse", {
+        method: "POST",
+        json: body,
+      });
+      done("DX PARSE READY");
+      formatOutput(data ?? { parsed: body, mode: "local" }, flags.json);
+    });
+
+  dx
+    .command("execute")
+    .option("--slug <slug>", "DX primitive slug", "intent_execute")
+    .option("--input <json>", "execution payload JSON", "{}")
+    .description("Execute DX primitive on clrty-1")
+    .action(async (opts: { slug: string; input: string }, cmd) => {
+      const flags = parentFlags(cmd);
+      header("CHAIN", "helix");
+      let payload: unknown = {};
+      try {
+        payload = JSON.parse(opts.input);
+      } catch {
+        formatOutput({ error: "invalid JSON input" }, flags.json);
+        process.exit(1);
+      }
+      const data = await apiFetch(getApiBaseUrl(), "/v1/dx/execute", {
+        method: "POST",
+        json: { slug: opts.slug, payload },
+      });
+      done("DX EXECUTE READY");
+      formatOutput(
+        data ?? {
+          slug: opts.slug,
+          payload,
+          mode: "local",
+          note: opts.slug === "cross_chain_transfer" ? "deferred per DEFERRED_BRIDGE.md" : undefined,
+        },
+        flags.json
+      );
+    });
+
+  chain
+    .command("transfer")
+    .option("--wallet <addr>", "source wallet")
+    .option("--amount <n>", "amount")
+    .description("Intelligent transfer via DX intelligent_transfer slug")
+    .action(async (opts: { wallet?: string; amount?: string }, cmd) => {
+      const flags = parentFlags(cmd);
+      header("CHAIN", "helix");
+      const data = await apiFetch(getApiBaseUrl(), "/v1/dx/execute", {
+        method: "POST",
+        json: {
+          slug: "intelligent_transfer",
+          payload: { wallet: opts.wallet, amount: opts.amount },
+        },
+      });
+      done("TRANSFER READY");
+      formatOutput(data ?? { slug: "intelligent_transfer", mode: "local" }, flags.json);
     });
 
   chain

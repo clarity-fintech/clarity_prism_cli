@@ -145,3 +145,21 @@ export function computeStats(dir?: string): LedgerStats {
     prediction_accuracy: queries > 0 ? 92.4 : 0,
   };
 }
+
+export function exportLedgerSnapshot(dir?: string): {
+  exported_at: string;
+  repo_dir: string;
+  head_hash: string;
+  events: LedgerEvent[];
+  stats: LedgerStats;
+} {
+  const base = repoDir(dir);
+  const events = readEvents(base);
+  return {
+    exported_at: new Date().toISOString(),
+    repo_dir: base,
+    head_hash: lastHash(base),
+    events,
+    stats: computeStats(base),
+  };
+}

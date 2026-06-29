@@ -79,24 +79,58 @@ See [PACKAGES.md](./PACKAGES.md) for import examples.
 
 Use for: development, demos, offline verification, CI smoke tests.
 
-### Live API mode
+### Live API mode (clrty-api on port **8545**)
+
+Start the blockchain API from the monorepo root:
+
+```bash
+cd /path/to/$CLRTY_PROJECT
+cargo run -p clrty-api
+```
 
 Set environment (see [ENVIRONMENT.md](./ENVIRONMENT.md)):
 
 ```bash
-export CLRTY_API_URL=http://127.0.0.1:8787
+export CLRTY_API_URL=http://127.0.0.1:8545
 export CLRTY_API_KEY=your_token   # if required
+export CLRTY_VERIFY_STRICT=1      # strict cross-repo verify
+```
+
+Or auto-start from prism-cli:
+
+```bash
+bash scripts/ensure_api_running.sh
+make live-verify
 ```
 
 | Endpoint | Method | Used by |
 |----------|--------|---------|
-| `/v1/prism/status` | GET | SDK health |
-| `/v1/prism/intent-aware` | POST | `clrt prism query`, `PrismClient.query()` |
+| `/v1/status` | GET | `clrt chain status`, `chain ready` |
+| `/v1/indexer/clrty-l1` | GET | `clrt chain indexer` |
+| `/v1/sets/:wallet` | GET | `clrt chain sets` |
+| `/v1/dx/primitives` | GET | `clrt chain dx list` |
+| `/v1/wallet/registry` | GET | `clrt wallet registry` |
+| `/v1/wallet/register` | POST | `clrt wallet connect` |
+| `/v1/wallet/balance/:wallet` | GET | `clrt wallet balance` |
+| `/v1/prism/account/register` | POST | `clrt account create` |
+| `/v1/commons/send` | POST | `clrt prism commons send` |
+| `/v1/prism/intent-aware` | POST | `clrt prism query`, SDK |
 | `/v1/helix/status` | GET | `clrt helix status` |
-| `/v1/helix/intents` | POST | HELIX intent submit |
-| `/v1/helix/net/preview` | GET | Net settlement preview |
 
-If the API is unreachable, SDK and CLI **automatically fall back to local mode**.
+If the API is unreachable, SDK and CLI **automatically fall back to local mode** (outbox queue for commons, local stubs for wallet registry).
+
+### Live workflow (account → wallet → chain → P2P)
+
+```bash
+clrt chain ready --json
+clrt account create --username alice --entity "Acme" --email a@acme.com --intent liquidity
+clrt wallet connect --address 0x1234567890123456789012345678901234567890
+clrt wallet registry --json
+clrt chain status --json
+clrt prism commons send --to bob --file ./README.md --json
+```
+
+Full command list: [CLI_REFERENCE.md](./CLI_REFERENCE.md).
 
 ---
 
@@ -371,10 +405,13 @@ Each event links to the previous via `parent_hash` (Merkle-style chain).
 ## 10. Verification and CI
 
 ```bash
-make verify          # packages + CLI smoke + ZIP
+make verify          # packages + inventory + cross-repo + CLI smoke
+make live            # build + ensure clrty-api + strict verify + smoke
+make live-verify     # ensure API + CLRTY_VERIFY_STRICT=1 verify + smoke
 make packages-verify # build all @clrt/* packages
 make cli-smoke       # run every CLI command
 make build-kit       # produce dist/clarity-prism-full.zip
+bash scripts/ensure_api_running.sh
 ```
 
 ---
@@ -383,9 +420,12 @@ make build-kit       # produce dist/clarity-prism-full.zip
 
 | Issue | Fix |
 |-------|-----|
-| `clrt: command not found` | Run `bash npm-install-local.sh` or use `node apps/cli/dist/index.js` |
+| `clrt: command not found` | Run `bash npm-install-local.sh`, `npm run clrt --`, or `./bin/clrt` |
+| Verify fails on `prism-cli` | Wrong directory — `cd ..` out of nested `clarity-prism-cli/clarity-prism-cli/` |
+| `chain ready` not ready | Start `cargo run -p clrty-api` or `bash scripts/ensure_api_running.sh` |
+| Wallet registry offline | Start clrty-api; offline stub returns `{ mode: "local" }` |
 | Build fails on package order | Run `npm run build` (uses ordered `scripts/build_all.mjs`) |
-| API mode not activating | Confirm `CLRTY_API_URL` is exported; test with `curl $CLRTY_API_URL/v1/prism/status` |
+| API mode not activating | Confirm `CLRTY_API_URL=http://127.0.0.1:8545`; test `curl $CLRTY_API_URL/v1/status` |
 | Skill blocked | Wait for active skill to finish; check `clrt skill locks` |
 | Empty trace log | Run any `prism query` or `validate` first to populate ledger |
 | Permission errors on ledger | Ensure write access to `~/.clrt/prism/repo` or set `PRISM_REPO_DIR` |

@@ -1,52 +1,29 @@
-export const EXCHANGES = ["binance", "coinbase", "kraken"] as const;
-export type ExchangeSlug = (typeof EXCHANGES)[number];
+export {
+  EXCHANGES,
+  createTokenBucket,
+  createRateLimiter,
+  defaultRateLimiters,
+  type ExchangeSlug,
+  type TokenBucket,
+} from "./rate-limit.js";
 
-export interface TokenBucket {
-  rps: number;
-  burst: number;
-  take(): boolean;
-  reset(): void;
+export interface MarketEvent {
+  exchange: string;
+  symbol: string;
+  price: number;
+  timestamp: string;
+  source: "live" | "dry-run" | "stub";
 }
 
-export function createTokenBucket(rps: number, burst: number): TokenBucket {
-  let tokens = burst;
-  let lastRefill = Date.now();
-
-  function refill(): void {
-    const now = Date.now();
-    const elapsed = (now - lastRefill) / 1000;
-    tokens = Math.min(burst, tokens + elapsed * rps);
-    lastRefill = now;
-  }
-
+export function normalizeFeedSample(
+  exchange: string,
+  raw: Record<string, unknown>
+): MarketEvent {
   return {
-    rps,
-    burst,
-    take(): boolean {
-      refill();
-      if (tokens >= 1) {
-        tokens -= 1;
-        return true;
-      }
-      return false;
-    },
-    reset(): void {
-      tokens = burst;
-      lastRefill = Date.now();
-    },
+    exchange,
+    symbol: String(raw.symbol ?? "BTC/USDT"),
+    price: Number(raw.price ?? raw.last ?? 0),
+    timestamp: new Date().toISOString(),
+    source: "stub",
   };
 }
-
-export function createRateLimiter(
-  env: NodeJS.ProcessEnv = process.env
-): Record<ExchangeSlug, TokenBucket> {
-  const rps = Number(env.EXCHANGE_RATE_LIMIT_RPS ?? "10");
-  const burst = Number(env.EXCHANGE_RATE_LIMIT_BURST ?? "20");
-  const limiters = {} as Record<ExchangeSlug, TokenBucket>;
-  for (const ex of EXCHANGES) {
-    limiters[ex] = createTokenBucket(rps, burst);
-  }
-  return limiters;
-}
-
-export const defaultRateLimiters = createRateLimiter();

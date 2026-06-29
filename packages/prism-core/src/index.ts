@@ -5,6 +5,7 @@ export { QueryMinimizer } from "./query-minimizer.js";
 export {
   appendEvent,
   computeStats,
+  exportLedgerSnapshot,
   lastHash,
   readEvents,
   repoDir,

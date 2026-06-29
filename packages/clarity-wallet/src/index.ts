@@ -28,13 +28,17 @@ export class CLRTYWallet {
   }
 
   async getBalance(address: string): Promise<{ address: string; balance: string; decimals: number }> {
-    const res = await fetch(this.rpc, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "clrty_getBalance", params: [address] }),
-    });
-    const body = (await res.json()) as { result?: string };
-    return { address, balance: body.result ?? "0", decimals: 9 };
+    try {
+      const res = await fetch(this.rpc, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "clrty_getBalance", params: [address] }),
+      });
+      const body = (await res.json()) as { result?: string };
+      return { address, balance: body.result ?? "0", decimals: 9 };
+    } catch {
+      return { address, balance: "0", decimals: 9 };
+    }
   }
 
   async suggestBridgePath(opts: { wallet: string; amount?: bigint }): Promise<Record<string, unknown>> {
@@ -57,27 +61,43 @@ export class CLRTYWallet {
   }
 
   async fetchRegistry(): Promise<Record<string, unknown>> {
-    const res = await fetch(`${this.api}/v1/wallet/registry`);
-    return (await res.json()) as Record<string, unknown>;
+    try {
+      const res = await fetch(`${this.api}/v1/wallet/registry`);
+      if (!res.ok) {
+        return { mode: "local", chain: "clrty-1", status: "offline" };
+      }
+      return (await res.json()) as Record<string, unknown>;
+    } catch {
+      return { mode: "local", chain: "clrty-1", status: "offline" };
+    }
   }
 
   async fetchNodes(): Promise<Record<string, unknown>> {
-    const res = await fetch(`${this.api}/v1/wallet/nodes`);
-    if (!res.ok) {
-      return { nodes: [], mode: "stub", count: 25 };
+    try {
+      const res = await fetch(`${this.api}/v1/wallet/nodes`);
+      if (!res.ok) {
+        return { nodes: [], mode: "stub", count: 25 };
+      }
+      return (await res.json()) as Record<string, unknown>;
+    } catch {
+      return { nodes: [], mode: "stub", count: 25, status: "offline" };
     }
-    return (await res.json()) as Record<string, unknown>;
   }
 
   async registerWallet(opts: { address: string; username: string }): Promise<Record<string, unknown>> {
-    const res = await fetch(`${this.api}/v1/wallet/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address: opts.address, username: opts.username }),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`${this.api}/v1/wallet/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet: opts.address, environment: "core" }),
+      });
+      if (!res.ok) {
+        return { ok: false, address: opts.address, username: opts.username, mode: "local" };
+      }
+      const data = (await res.json()) as Record<string, unknown>;
+      return { ok: true, address: opts.address, username: opts.username, ...data };
+    } catch {
       return { ok: false, address: opts.address, username: opts.username, mode: "local" };
     }
-    return (await res.json()) as Record<string, unknown>;
   }
 }

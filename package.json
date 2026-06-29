@@ -12,7 +12,12 @@
     "build:terminal": "npm run build -w prism-cli",
     "dev:terminal": "node scripts/dev-terminal.mjs",
     "clean": "npm run clean --workspaces --if-present",
-    "verify": "node scripts/verify_packages.mjs && node scripts/verify_cross_repo.mjs"
+    "clrt": "node apps/cli/dist/index.js",
+    "verify": "node scripts/verify_packages.mjs && node scripts/generate_data_inventory.mjs && node scripts/verify_cross_repo.mjs",
+    "postinstall": "node scripts/check_repo_root.mjs"
+  },
+  "bin": {
+    "clrt": "./bin/clrt"
   },
   "engines": {
     "node": ">=18"

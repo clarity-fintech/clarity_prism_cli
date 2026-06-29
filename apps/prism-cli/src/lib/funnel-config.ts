@@ -112,6 +112,7 @@ export const FUNNELS: Funnel[] = [
       { key: "chain ready", label: "Chain ready gate", hint: "Press Enter for pass/fail matrix" },
       { key: "chain status", label: "Chain status", hint: "Press Enter for clrty-1 snapshot" },
       { key: "chain indexer", label: "L1 indexer", hint: "Press Enter for indexer feed" },
+      { key: "chain dx list", label: "DX primitives", hint: "Press Enter for DX catalog" },
     ],
   },
   {

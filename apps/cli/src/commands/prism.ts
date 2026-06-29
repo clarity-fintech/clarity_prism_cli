@@ -1,8 +1,10 @@
 import { Command } from "commander";
 import { PrismClient } from "@clrt/prism-sdk";
-import { validateClaim, traceLog, computeStats } from "@clrt/prism-core";
+import { validateClaim, traceLog, computeStats, exportLedgerSnapshot } from "@clrt/prism-core";
 import { header, step, done, theme } from "../theme.js";
 import { prismQueryQueue } from "../query-queue.js";
+import { apiFetch, getApiBaseUrl } from "../lib/api-client.js";
+import { formatOutput, parseGlobalFlags, shouldDryRun } from "../middleware/json-dry-run.js";
 
 export function registerPrism(program: Command): void {
   const prism = program.command("prism").description("PRISM intelligence layer");
@@ -126,5 +128,70 @@ export function registerPrism(program: Command): void {
       const stats = computeStats();
       done("STATS READY");
       console.log(JSON.stringify(stats, null, 2));
+    });
+
+  prism
+    .command("estimate")
+    .option("--capital <n>", "capital amount", "1000")
+    .option("--intent <text>", "execution intent", "arbitrage_scan")
+    .description("Execution cost estimate (PoR forecast)")
+    .action((opts: { capital: string; intent: string }, cmd) => {
+      const flags = parseGlobalFlags(cmd.parent?.parent?.opts() ?? {});
+      header("PRISM ENGINE", "prism");
+      const capital = Number(opts.capital);
+      const client = new PrismClient();
+      const pred = client.predict(capital);
+      const estimate = {
+        intent: opts.intent,
+        capital,
+        estimated_gas_clrty: Math.round(capital * 0.00012),
+        helix_fee_bps: 8,
+        por_confidence: (pred as { confidence?: number }).confidence ?? 0.92,
+        lane: "helix_internal",
+      };
+      done("ESTIMATE READY");
+      formatOutput(estimate, flags.json);
+    });
+
+  prism
+    .command("execute")
+    .option("--algo <hash>", "algorithm hash or DX slug", "intent_execute")
+    .option("--input <json>", "input payload JSON", "{}")
+    .description("RAG/GENAI algorithmic execution via DX layer")
+    .action(async (opts: { algo: string; input: string }, cmd) => {
+      const flags = parseGlobalFlags(cmd.parent?.parent?.opts() ?? {});
+      header("PRISM ENGINE", "prism");
+
+      if (shouldDryRun(flags)) {
+        formatOutput({ dryRun: true, algo: opts.algo, input: opts.input }, flags.json);
+        return;
+      }
+
+      let payload: unknown = {};
+      try {
+        payload = JSON.parse(opts.input);
+      } catch {
+        formatOutput({ error: "invalid JSON input" }, flags.json);
+        process.exit(1);
+      }
+
+      const data = await apiFetch(getApiBaseUrl(), "/v1/dx/execute", {
+        method: "POST",
+        json: { slug: opts.algo, payload },
+      });
+      done("EXECUTE READY");
+      formatOutput(data ?? { algo: opts.algo, payload, mode: "local" }, flags.json);
+    });
+
+  prism
+    .command("snapshot")
+    .option("--out <path>", "output path", "~/.clrt/prism/ledger-snapshot.json")
+    .description("Mini-git ledger state backup")
+    .action((opts: { out: string }, cmd) => {
+      const flags = parseGlobalFlags(cmd.parent?.parent?.opts() ?? {});
+      header("PRISM ENGINE", "prism");
+      const snap = exportLedgerSnapshot();
+      done("SNAPSHOT READY");
+      formatOutput({ path: opts.out, events: snap.events.length, snapshot: snap }, flags.json);
     });
 }
