@@ -195,9 +195,28 @@ clrt pack verify mastermind --json
 clrt run "optimize portfolio yield" --capital 5000 --json
 
 # ── 12. Terminal UI (Wallet + Chain panels → :8545) ─────────────
-npm run build:terminal
+
+### One-time setup
+
+```bash
+cp .env.example .env
+# Set CLRTY_GATE_MASTER and CLRTY_PRISM_ADMIN_PASS
+```
+
+### Launch (gate env auto-synced)
+
+```bash
+make launch-prism              # sync gate + dev → http://localhost:5174
+make launch-prism-live         # build + API + sync gate + dev
+npm run launch:prism
+npm run launch:prism:live
 npm run dev:terminal
-# → http://localhost:5174
+npm run build:terminal
+clrt gate sync
+clrt gate password             # personal access code for gate UI
+```
+
+Contact for access: **william@clarity-fintech.com**
 
 ### Terminal access gate
 
@@ -216,13 +235,16 @@ Until public launch, the PRISM terminal blocks the main funnel UI (SubMenu, Outp
 1. **Investor** — complete settlement walkthrough (`investor_class` via API)
 2. **Mastermind pack** — `clrt pack download mastermind && clrt pack verify mastermind`
 3. **Partner early access** — `clrt partner request-access` → API approval
+4. **Personal access code** — `clrt gate password` (operator-issued)
 
 **Env vars (terminal build):**
 
 | Variable | Purpose |
 |----------|---------|
+| `CLRTY_GATE_MASTER` | Master secret for `clrt gate password` (auto-syncs digest) |
+| `CLRTY_PRISM_ADMIN_PASS` | Operator admin password (auto-syncs to Vite) |
 | `VITE_PRISM_TERMINAL_PUBLIC=1` | Disable gate (public launch) |
-| `VITE_CLRTY_PRISM_ADMIN_PASS` | Operator override password (build-time) |
+| `VITE_CLRTY_GATE_ACCESS_DIGEST` | Auto-set by `sync_gate_env` — do not set manually |
 | `CLRTY_DEV_PARTNER_APPROVED=1` | Dev API: auto-approve partner status |
 
 **API routes (entitlements):**

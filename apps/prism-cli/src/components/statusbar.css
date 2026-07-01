@@ -15,6 +15,25 @@
 
 .statusbar-center {
   color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.terminal-only-pill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+
+.statusbar-port {
+  color: var(--cyan);
+  font-variant-numeric: tabular-nums;
 }
 
 .statusbar-center .warn {

@@ -16,7 +16,7 @@ Standalone repo: https://github.com/williamsnameiswill/clarity-prism-cli
 
 **Query backlog:** Terminal UI and `clrt prism query` process **one prompt at a time** with automatic queueing for additional prompts (`clrt prism queue status`).
 
-**Terminal access gate:** The PRISM terminal UI (`npm run dev:terminal`) is **temporarily unavailable** for general users until public launch. Account creation remains open. Full terminal unlock requires **one of three entitlements** — investor settlement path, Volkov Mastermind First Access pack verify, or approved partner early access — plus an operator admin password override. Set `VITE_PRISM_TERMINAL_PUBLIC=1` to disable the gate for launch.
+**Terminal access gate:** The PRISM terminal UI is **temporarily unavailable** for general users until public launch. Account creation remains open. Full terminal unlock requires **one of four paths** — investor settlement, Mastermind pack verify, approved partner early access, or a **personal access code** from `clrt gate password`. Operator admin override and public launch bypass also available. Gate env **auto-syncs** from root `.env` on every terminal launch.
 
 ---
 
@@ -70,11 +70,43 @@ Extract `dist/clarity-prism-full.zip`, then run `bash npm-install-local.sh`.
 
 ### Visual terminal UI (matches PRISM design)
 
+**One-time setup** — copy env template and set your master secret:
+
 ```bash
-# Terminal UI → http://localhost:5174
-npm run dev:terminal
-npm run build:terminal
+cp .env.example .env
+# Edit .env: set CLRTY_GATE_MASTER and optionally CLRTY_PRISM_ADMIN_PASS
 ```
+
+**Launch PRISM terminal** (gate env auto-synced):
+
+```bash
+make launch-prism              # native shell — full clrt in this terminal (recommended)
+make launch-prism-web          # optional browser UI → http://localhost:5174
+make launch-prism-live         # build + API + native terminal
+npm run launch:terminal        # same as make launch-prism
+npm run launch:prism           # same as make launch-prism
+npm run dev:terminal           # browser UI dev server only
+npm run build:terminal         # sync gate + production browser build
+```
+
+From monorepo root (`$CLRTY_PROJECT`):
+
+```bash
+make launch-prism              # delegates to clarity-prism-cli/
+npm run launch:terminal
+```
+
+**Personal access codes** (single command):
+
+```bash
+clrt prism terminal            # native PRISM shell (full CLI in terminal)
+clrt gate password             # derive personal access code from CLRTY_GATE_MASTER
+clrt gate sync                 # manually sync apps/prism-cli/.env
+clrt account create --username alice --entity "Acme" --email you@firm.com
+make gate-password             # sync + print code
+```
+
+Contact for access: **william@clarity-fintech.com**
 
 Output: `apps/prism-cli/dist/`. See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) if Vite warns about `#` in paths.
 
@@ -142,24 +174,28 @@ Global flags: `--json` · `--dry-run`
 See **[docs/CLI_REFERENCE.md](./docs/CLI_REFERENCE.md)** for every command.
 
 ```bash
+# One-time: cp .env.example .env  →  set CLRTY_GATE_MASTER
+
+# Option A — all-in-one PRISM launch (recommended)
+cd clarity-prism-cli
+npm install && npm run build
+make launch-prism-live         # API + gate sync + terminal → :5174
+
+# Option B — manual terminals
 # Terminal 1 — blockchain API
 cd ..   # monorepo root ($CLRTY_PROJECT)
 cargo run -p clrty-api
 
-# Terminal 2 — CLI
+# Terminal 2 — CLI + PRISM UI
 cd clarity-prism-cli
-npm install && npm run build
-make live                    # build + ensure API + strict verify + smoke
-
 export CLRTY_API_URL=http://127.0.0.1:8545
-clrt chain ready --json
+make live                    # build + ensure API + strict verify + smoke
+make launch-prism            # sync gate env + terminal dev → :5174
+
+clrt gate password           # personal access code for gate UI
 clrt account create --username alice --entity "Acme" --email a@acme.com --intent liquidity
 clrt wallet connect --address 0x1234567890123456789012345678901234567890
-clrt wallet registry --json
 clrt prism commons send --to bob --file ./README.md --json
-
-# Terminal UI (Wallet + Chain panels)
-npm run dev:terminal         # http://localhost:5174
 ```
 
 ---

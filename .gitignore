@@ -3,6 +3,8 @@ dist/
 var/
 *.log
 .env
+apps/prism-cli/.env
+apps/prism-cli/.env.local
 .DS_Store
 *.tsbuildinfo
 # Accidental nested clone (causes verify failure if you cd twice)

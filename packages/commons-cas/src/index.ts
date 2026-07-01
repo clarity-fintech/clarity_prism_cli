@@ -205,7 +205,7 @@ export async function sendToUser(
     from_username: fromUsername,
     to_username: toUsername,
     cid: asset.cid,
-    meta: { size: asset.size },
+    meta: { size: asset.size, filename: filePath.split("/").pop() },
   });
   if (result?.transfer?.id) {
     return { asset, transferId: result.transfer.id };
@@ -213,3 +213,28 @@ export async function sendToUser(
   const queued = store.queueSend(fromUsername, toUsername, asset.cid);
   return { asset, queued };
 }
+
+export {
+  CACHE_MAX_BYTES,
+  getCacheStatus,
+  listCache,
+  listLibrary,
+  putFileToCache,
+  pasteToCache,
+  getCacheEntry,
+  readCacheContent,
+  promoteToLibrary,
+  getCommonsRoots,
+  type CacheEntry,
+  type LibraryEntry,
+  type CacheStatus,
+} from "./file-cache.js";
+
+export {
+  computeTransferTax,
+  logBlockchainTransfer,
+  readTransferLedger,
+  getLedgerPath,
+  type TaxBreakdown,
+  type BlockchainTransferLog,
+} from "./transfer-ledger.js";

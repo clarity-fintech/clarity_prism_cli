@@ -1,6 +1,7 @@
 import { IntentEngine } from "@clrt/prism-core";
 import { predictCapitalOutcome } from "@clrt/prism-models";
 import { versionLabel } from "./version";
+import { isLocalTerminal } from "./local-mode";
 
 export type OutputLine = {
   text: string;
@@ -310,11 +311,15 @@ function appendBrowserEvent(type: string, intent: string, summary: string): void
 
 const engine = new IntentEngine();
 
-async function apiFetch(path: string, init?: RequestInit): Promise<unknown | null> {
-  const settings = loadSettings();
-  const base = settings.apiUrl.replace(/\/$/, "");
+export function getApiBaseUrl(): string {
+  return loadSettings().apiUrl.replace(/\/$/, "") || DEFAULT_API_URL;
+}
+
+export async function apiFetch(path: string, init?: RequestInit): Promise<unknown | null> {
+  const base = getApiBaseUrl();
   if (!base) return null;
   try {
+    const settings = loadSettings();
     const headers: Record<string, string> = { ...(init?.headers as Record<string, string>) };
     if (settings.apiKey) headers.Authorization = `Bearer ${settings.apiKey}`;
     const res = await fetch(`${base}${path}`, { ...init, headers });
@@ -323,6 +328,39 @@ async function apiFetch(path: string, init?: RequestInit): Promise<unknown | nul
   } catch {
     return null;
   }
+}
+
+type ApiFetchResult =
+  | { ok: true; data: Record<string, unknown> }
+  | { ok: false; error: string; offline?: boolean };
+
+/** Commons POST/GET with API error body surfaced (no silent browser fallback). */
+async function apiFetchCommons(path: string, init?: RequestInit): Promise<ApiFetchResult> {
+  const base = getApiBaseUrl();
+  if (!base) {
+    return { ok: false, error: "API URL not configured", offline: true };
+  }
+  try {
+    const settings = loadSettings();
+    const headers: Record<string, string> = { ...(init?.headers as Record<string, string>) };
+    if (settings.apiKey) headers.Authorization = `Bearer ${settings.apiKey}`;
+    const res = await fetch(`${base}${path}`, { ...init, headers });
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      return {
+        ok: false,
+        error: String(body.error ?? `HTTP ${res.status}`),
+        offline: res.status === 0,
+      };
+    }
+    return { ok: true, data: body };
+  } catch {
+    return { ok: false, error: "API disconnected — start clrty-api on port 8545", offline: true };
+  }
+}
+
+function commonsOfflineError(): string {
+  return "API disconnected — connect clrty-api (port 8545) for 1GB cache, send, and ledger";
 }
 
 async function apiQuery(body: Record<string, unknown>): Promise<unknown | null> {
@@ -482,6 +520,36 @@ export const CLI_COMMANDS: Record<string, string> = {
   "prism commons inbox": "clrt prism commons inbox",
   "prism commons receive": "clrt prism commons receive TRANSFER_ID",
   "prism commons discover": "clrt prism commons discover topic",
+  "settlement status": "clrt settlement status",
+  "settlement attest": "clrt settlement attest",
+  "account status": "clrt account status",
+  "account kyc": "clrt account kyc",
+  "partner status": "clrt partner status",
+  "partner keys": "clrt partner keys",
+  "exchange probe binance": "clrt exchange probe binance",
+  "exchange probe coinbase": "clrt exchange probe coinbase",
+  "exchange probe kraken": "clrt exchange probe kraken",
+  "exchange qa scan": "clrt exchange qa scan",
+  integrations: "clrt integrations",
+  "integrations probe": "clrt integrations probe",
+  "identity status": "clrt identity status",
+  "identity wallet": "clrt identity wallet",
+  "governance status": "clrt governance status",
+  "governance proposals": "clrt governance proposals",
+  "nodes list": "clrt nodes list",
+  "nodes probe": "clrt nodes probe",
+  "chain dx list": "clrt chain dx list",
+  "skill momentum": "clrt skill momentum --capital 1000",
+  "skill payment": "clrt skill payment --capital 1000",
+  "skill risk": "clrt skill risk --capital 1000",
+  "updates check": "clrt updates check",
+  "updates changelog": "clrt updates changelog",
+  query: 'clrt prism query "arbitrage opportunities"',
+  predict: "clrt prism predict --capital=1000",
+  validate: "clrt prism validate --intent arbitrage_scan",
+  trace: "clrt prism trace -n 20",
+  stats: "clrt prism stats",
+  help: "help",
   pipeline: 'clrt run "optimize portfolio yield" --capital 5000',
 };
 
@@ -728,36 +796,226 @@ export async function runPackOperation(op: string): Promise<OutputLine[]> {
 }
 
 export async function runCliCommand(key: string): Promise<OutputLine[]> {
-  const cmd = CLI_COMMANDS[key];
-  if (!cmd) return [{ text: "Unknown command", tone: "risk" }];
-  const base: OutputLine[] = [
-    { text: "HELIX / CLRT COMMAND", tone: "helix" },
-    { text: cmd, tone: "helix" },
-    { text: "", tone: "muted" },
-    { text: "Run in terminal: node apps/cli/dist/index.js …", tone: "muted" },
-  ];
-  let extra: OutputLine[] = [];
-  if (key.startsWith("prism query")) extra = await prismQuery("arbitrage opportunities");
-  else if (key.startsWith("prism predict")) extra = prismPredict(1000);
-  else if (key.startsWith("prism validate"))
-    extra = prismValidate("Market opportunity within risk bounds", "arbitrage_scan");
-  else if (key.startsWith("prism trace")) extra = prismTrace();
-  else if (key.startsWith("prism stats")) extra = prismStats();
-  else if (key.startsWith("prism queue"))
-    extra = [{ text: JSON.stringify({ pending: 0, note: "Use clrt prism queue status" }, null, 2), tone: "muted" }];
-  else if (key.startsWith("chain"))
-    extra = [{ text: JSON.stringify(await fetchChainStatus(), null, 2), tone: "muted" }];
-  else if (key.startsWith("settlement"))
-    extra = [{ text: JSON.stringify(await fetchSettlementStatus(), null, 2), tone: "muted" }];
-  else if (key.startsWith("account"))
-    extra = [{ text: JSON.stringify(await fetchAccountStatus(), null, 2), tone: "muted" }];
-  else if (key.startsWith("exchange probe"))
-    extra = await probeExchange(key.split(" ").pop() ?? "binance");
-  else if (key.startsWith("pack"))
-    extra = await runPackOperation(key.replace(/^pack\s+/, "") || "status");
-  else if (key.startsWith("integrations"))
-    extra = [{ text: JSON.stringify(await fetchBlockchainIntegrations(), null, 2), tone: "muted" }];
-  else
-    extra = [{ text: "Local preview — use `clrt` CLI for full HELIX execution.", tone: "muted" }];
-  return [...base, ...extra];
+  const { executeCommandKey } = await import("./terminal-exec");
+  return executeCommandKey(key);
+}
+
+const BROWSER_CACHE_MAX = 52_428_800; // 50MB browser fallback
+const BROWSER_CACHE_KEY = "prism-commons-browser-cache";
+
+export interface CommonsCacheStatus {
+  username: string;
+  usedBytes: number;
+  maxBytes: number;
+  percentUsed: number;
+  entryCount: number;
+  mode: "api" | "browser" | "offline";
+}
+
+export interface CommonsCacheEntry {
+  cid: string;
+  name: string;
+  size: number;
+  createdAt: string;
+  content?: string;
+}
+
+export interface CommonsLedgerEntry {
+  id?: string;
+  tx_id?: string;
+  txId?: string;
+  from_username?: string;
+  to_username?: string;
+  cid?: string;
+  taxes?: {
+    total_tax?: number;
+    transfer_fee?: number;
+    compliance_tax?: number;
+    gas_equivalent?: number;
+  };
+  logged_at?: string;
+}
+
+function loadBrowserCache(username: string): { entries: CommonsCacheEntry[]; usedBytes: number } {
+  try {
+    const raw = localStorage.getItem(`${BROWSER_CACHE_KEY}:${username}`);
+    if (!raw) return { entries: [], usedBytes: 0 };
+    return JSON.parse(raw) as { entries: CommonsCacheEntry[]; usedBytes: number };
+  } catch {
+    return { entries: [], usedBytes: 0 };
+  }
+}
+
+function saveBrowserCache(username: string, data: { entries: CommonsCacheEntry[]; usedBytes: number }): void {
+  localStorage.setItem(`${BROWSER_CACHE_KEY}:${username}`, JSON.stringify(data));
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const enc = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function fetchCommonsCacheStatus(username?: string): Promise<CommonsCacheStatus> {
+  const user = username ?? loadBrowserProfile()?.username ?? "guest";
+  const remote = (await apiFetch(
+    `/v1/commons/cache/status?username=${encodeURIComponent(user)}`
+  )) as Record<string, unknown> | null;
+  if (remote && (remote.used_bytes !== undefined || remote.usedBytes !== undefined)) {
+    return {
+      username: user,
+      usedBytes: Number(remote.used_bytes ?? remote.usedBytes ?? 0),
+      maxBytes: Number(remote.max_bytes ?? remote.maxBytes ?? 1_073_741_824),
+      percentUsed: Number(remote.percent_used ?? remote.percentUsed ?? 0),
+      entryCount: Number(remote.entry_count ?? remote.entryCount ?? 0),
+      mode: "api",
+    };
+  }
+  if (isLocalTerminal()) {
+    const local = loadBrowserCache(user);
+    return {
+      username: user,
+      usedBytes: local.usedBytes,
+      maxBytes: BROWSER_CACHE_MAX,
+      percentUsed: Math.round((local.usedBytes / BROWSER_CACHE_MAX) * 10000) / 100,
+      entryCount: local.entries.length,
+      mode: "browser",
+    };
+  }
+  return {
+    username: user,
+    usedBytes: 0,
+    maxBytes: 1_073_741_824,
+    percentUsed: 0,
+    entryCount: 0,
+    mode: "offline",
+  };
+}
+
+export async function pasteToCommonsCache(text: string, username?: string, name?: string): Promise<CommonsCacheEntry> {
+  const user = username ?? loadBrowserProfile()?.username ?? "guest";
+
+  if (!isLocalTerminal()) {
+    const result = await apiFetchCommons("/v1/commons/cache/paste", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: user, text, name }),
+    });
+    if (!result.ok || !result.data.cid) {
+      throw new Error(result.ok ? "paste failed" : result.error || commonsOfflineError());
+    }
+    return {
+      cid: String(result.data.cid),
+      name: String(result.data.name ?? name ?? "paste.txt"),
+      size: Number(result.data.size ?? text.length),
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  const size = new TextEncoder().encode(text).length;
+  const cache = loadBrowserCache(user);
+  if (cache.usedBytes + size > BROWSER_CACHE_MAX) {
+    throw new Error("browser cache full (50MB) — connect API for 1GB cache");
+  }
+  const cid = await sha256Hex(text);
+  const entry: CommonsCacheEntry = {
+    cid,
+    name: name ?? `paste-${Date.now()}.txt`,
+    size,
+    createdAt: new Date().toISOString(),
+    content: text,
+  };
+  cache.entries = cache.entries.filter((e) => e.cid !== cid);
+  cache.entries.unshift(entry);
+  cache.usedBytes += size;
+  saveBrowserCache(user, cache);
+  return entry;
+}
+
+export async function copyCommonsCacheCid(cid: string, username?: string): Promise<string> {
+  const user = username ?? loadBrowserProfile()?.username ?? "guest";
+
+  if (!isLocalTerminal()) {
+    const result = await apiFetchCommons(
+      `/v1/commons/cache/read?username=${encodeURIComponent(user)}&cid=${encodeURIComponent(cid)}`
+    );
+    if (result.ok && typeof result.data.content === "string") {
+      return result.data.content;
+    }
+    throw new Error(result.ok ? "content empty" : result.error || commonsOfflineError());
+  }
+
+  const local = loadBrowserCache(user).entries.find((e) => e.cid === cid);
+  if (local?.content) return local.content;
+  throw new Error("not in local cache — connect API to read");
+}
+
+export async function fetchCommonsLibrary(): Promise<{ count: number; library: unknown[]; mode: "api" | "offline" | "browser" }> {
+  const remote = (await apiFetch("/v1/commons/library")) as { count?: number; library?: unknown[] } | null;
+  if (remote) return { count: remote.count ?? 0, library: remote.library ?? [], mode: "api" };
+  if (isLocalTerminal()) {
+    const user = loadBrowserProfile()?.username ?? "guest";
+    const entries = loadBrowserCache(user).entries;
+    return {
+      count: entries.length,
+      library: entries.map((e) => ({ cid: e.cid, name: e.name, size: e.size, owner: user })),
+      mode: "browser",
+    };
+  }
+  return { count: 0, library: [], mode: "offline" };
+}
+
+export async function fetchCommonsLedger(limit = 20): Promise<CommonsLedgerEntry[]> {
+  const remote = (await apiFetch(`/v1/commons/ledger?limit=${limit}`)) as {
+    entries?: CommonsLedgerEntry[];
+  } | null;
+  if (remote?.entries) return remote.entries;
+  return [];
+}
+
+export async function fetchCommonsSnapshot(): Promise<Record<string, unknown>> {
+  const profile = loadBrowserProfile();
+  const username = profile?.username ?? "guest";
+  const [cache, library, ledger] = await Promise.all([
+    fetchCommonsCacheStatus(username),
+    fetchCommonsLibrary(),
+    fetchCommonsLedger(10),
+  ]);
+  return { cache, library, ledger, username };
+}
+
+/** Terminal-only P2P send — logs taxes via API. */
+export async function sendCommonsFromTerminal(
+  toUsername: string,
+  cid: string,
+  sizeBytes: number,
+  filename?: string
+): Promise<{ ok: boolean; transfer?: unknown; taxes?: unknown; error?: string }> {
+  const profile = loadBrowserProfile();
+  if (!profile?.username) {
+    return { ok: false, error: "create account in gate first" };
+  }
+  const body = {
+    from_username: profile.username,
+    to_username: toUsername.trim().toLowerCase(),
+    cid,
+    meta: { size: sizeBytes, filename, source: "prism-terminal" },
+  };
+  const result = await apiFetchCommons("/v1/commons/transfer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!result.ok) {
+    return { ok: false, error: result.error || commonsOfflineError() };
+  }
+  return {
+    ok: result.data.ok !== false,
+    transfer: result.data.transfer,
+    taxes: result.data.taxes,
+    error: result.data.error ? String(result.data.error) : undefined,
+  };
 }

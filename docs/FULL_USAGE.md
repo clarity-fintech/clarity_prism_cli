@@ -402,7 +402,50 @@ Each event links to the previous via `parent_hash` (Merkle-style chain).
 
 ---
 
-## 10. Verification and CI
+## 10. PRISM terminal UI (full usage — terminal only)
+
+**Primary interface for full PRISM use.** All funnel commands run in the terminal UI; live data is fed from **clrty-api :8545**.
+
+See **[TERMINAL_FULL_USAGE.md](./TERMINAL_FULL_USAGE.md)** for the complete guide.
+
+In-terminal: type **`help`** or Home → **Full terminal usage**.
+
+### Setup (one time)
+
+```bash
+cp .env.example .env
+# Edit .env — set CLRTY_GATE_MASTER and CLRTY_PRISM_ADMIN_PASS
+npm install && npm run build
+```
+
+Gate env auto-syncs from root `.env` → `apps/prism-cli/.env` on every launch/build.
+
+### Launch commands
+
+| Command | What it does |
+|---------|----------------|
+| `make launch-prism` | Ensure API + sync gate + dev → http://localhost:5174 |
+| `make launch-prism-live` | Build CLI + ensure API + sync gate + dev |
+| `make launch-prism-local` | Offline dev stubs only (no port) |
+| `npm run launch:prism` | Same as `make launch-prism` |
+| `npm run launch:prism:live` | Same as `make launch-prism-live` |
+| `npm run dev:terminal` | Sync gate + dev |
+| `npm run build:terminal` | Sync gate + production build |
+| `clrt gate sync` | Manual gate env sync |
+| `clrt gate password` | Print personal access code |
+
+### Unlock paths (any one)
+
+1. **Personal access code** — `clrt gate password` (from `CLRTY_GATE_MASTER`)
+2. **Investor** — settlement walkthrough in terminal UI
+3. **Mastermind pack** — `clrt pack download mastermind && clrt pack verify mastermind`
+4. **Partner** — `clrt partner request-access`
+
+Contact for access: **william@clarity-fintech.com**
+
+---
+
+## 11. Verification and CI
 
 ```bash
 make verify          # packages + inventory + cross-repo + CLI smoke
@@ -416,7 +459,7 @@ bash scripts/ensure_api_running.sh
 
 ---
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
@@ -428,11 +471,12 @@ bash scripts/ensure_api_running.sh
 | API mode not activating | Confirm `CLRTY_API_URL=http://127.0.0.1:8545`; test `curl $CLRTY_API_URL/v1/status` |
 | Skill blocked | Wait for active skill to finish; check `clrt skill locks` |
 | Empty trace log | Run any `prism query` or `validate` first to populate ledger |
-| Permission errors on ledger | Ensure write access to `~/.clrt/prism/repo` or set `PRISM_REPO_DIR` |
+| Personal access code rejected | Run `clrt gate sync` — ensure `CLRTY_GATE_MASTER` in root `.env` |
+| Gate env not updating | Delete `apps/prism-cli/.env` and re-run `make launch-prism` |
 
 ---
 
-## 12. Related documents
+## 13. Related documents
 
 - [CLI_REFERENCE.md](./CLI_REFERENCE.md) — command syntax cheat sheet
 - [PACKAGES.md](./PACKAGES.md) — programmatic SDK APIs

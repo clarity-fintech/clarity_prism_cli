@@ -22,6 +22,7 @@ const order = [
   "@clrt/primitive-registry",
   "@clrt/repo-sync",
   "@clrt/account-profile",
+  "@clrt/gate-access",
   "@clrt/market-feeds",
   "@clrt/commons-cas",
   "@clrt/clarity-wallet",

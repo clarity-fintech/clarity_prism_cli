@@ -5,6 +5,7 @@ import { header, step, done, theme } from "../theme.js";
 import { prismQueryQueue } from "../query-queue.js";
 import { apiFetch, getApiBaseUrl } from "../lib/api-client.js";
 import { formatOutput, parseGlobalFlags, shouldDryRun } from "../middleware/json-dry-run.js";
+import { runPrismTerminalShell } from "./terminal-shell.js";
 
 export function registerPrism(program: Command): void {
   const prism = program.command("prism").description("PRISM intelligence layer");
@@ -181,6 +182,13 @@ export function registerPrism(program: Command): void {
       });
       done("EXECUTE READY");
       formatOutput(data ?? { algo: opts.algo, payload, mode: "local" }, flags.json);
+    });
+
+  prism
+    .command("terminal")
+    .description("PRISM full terminal shell — stays in this terminal, port-fed clrt CLI")
+    .action(async () => {
+      await runPrismTerminalShell();
     });
 
   prism

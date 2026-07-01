@@ -49,14 +49,7 @@ export default function WalletPanel() {
         </div>
       </div>
       <div className="funnel-panel-desc" style={{ marginTop: 12, fontSize: 12, color: "var(--muted)" }}>
-        Integration packs:{" "}
-        <a
-          href="https://github.com/theangelofwill/CLRTY-WALLET-INTEGRATION"
-          target="_blank"
-          rel="noreferrer"
-        >
-          CLRTY-WALLET-INTEGRATION
-        </a>
+        Terminal only — use <code>wallet connect --address 0x…</code> in the prompt below.
         {" · "}
         <code>clrt pack download wallet-integration</code>
       </div>

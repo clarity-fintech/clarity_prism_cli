@@ -5,6 +5,7 @@ import {
   saveBrowserEntitlements,
   type BrowserAccountProfile,
 } from "./prism-bridge";
+import { verifyGateAccessPassword } from "@clrt/gate-access";
 
 export type AccessState =
   | "loading"
@@ -12,6 +13,7 @@ export type AccessState =
   | "account_created"
   | "entitled"
   | "admin"
+  | "personal"
   | "public_launch";
 
 export interface EntitlementSnapshot {
@@ -31,6 +33,7 @@ export interface AccessResolution {
 }
 
 const ADMIN_UNLOCK_KEY = "prism-admin-unlocked";
+const PERSONAL_UNLOCK_KEY = "prism-personal-unlocked";
 const PUBLIC_LAUNCH_KEY = "prism-terminal-public-launch";
 
 const USERNAME_RE = /^[a-z0-9_-]{3,32}$/;
@@ -60,15 +63,50 @@ export function isAdminUnlocked(): boolean {
   }
 }
 
+export function clearAdminUnlock(): void {
+  localStorage.removeItem(ADMIN_UNLOCK_KEY);
+}
+
+/** True when VITE_CLRTY_PRISM_ADMIN_PASS was baked in at build/sync time. */
+export function adminLoginConfigured(): boolean {
+  const pass = import.meta.env.VITE_CLRTY_PRISM_ADMIN_PASS as string | undefined;
+  return Boolean(pass?.trim());
+}
+
+/** True when VITE_CLRTY_GATE_ACCESS_DIGEST was baked in at build/sync time. */
+export function personalLoginConfigured(): boolean {
+  const digest = import.meta.env.VITE_CLRTY_GATE_ACCESS_DIGEST as string | undefined;
+  return Boolean(digest?.trim());
+}
+
 export function unlockAdmin(password: string): boolean {
   const expected = import.meta.env.VITE_CLRTY_PRISM_ADMIN_PASS as string | undefined;
-  if (!expected || password !== expected) return false;
+  if (!expected?.trim()) return false;
+  if (password !== expected) return false;
   localStorage.setItem(ADMIN_UNLOCK_KEY, "1");
   return true;
 }
 
-export function clearAdminUnlock(): void {
-  localStorage.removeItem(ADMIN_UNLOCK_KEY);
+export function isPersonalUnlocked(): boolean {
+  try {
+    return localStorage.getItem(PERSONAL_UNLOCK_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export async function unlockPersonalAccess(code: string): Promise<boolean> {
+  const expectedDigest = import.meta.env.VITE_CLRTY_GATE_ACCESS_DIGEST as string | undefined;
+  if (!expectedDigest?.trim()) return false;
+
+  const ok = await verifyGateAccessPassword(code, expectedDigest);
+  if (!ok) return false;
+  localStorage.setItem(PERSONAL_UNLOCK_KEY, "1");
+  return true;
+}
+
+export function clearPersonalUnlock(): void {
+  localStorage.removeItem(PERSONAL_UNLOCK_KEY);
 }
 
 async function apiFetch(path: string): Promise<Record<string, unknown> | null> {
@@ -135,6 +173,15 @@ export async function resolveAccessState(): Promise<AccessResolution> {
       profile: loadBrowserProfile(),
       entitlements: readEntitlementsFromRemote(null),
       reason: "admin_unlock",
+    };
+  }
+
+  if (isPersonalUnlocked()) {
+    return {
+      state: "personal",
+      profile: loadBrowserProfile(),
+      entitlements: readEntitlementsFromRemote(null),
+      reason: "personal_access",
     };
   }
 

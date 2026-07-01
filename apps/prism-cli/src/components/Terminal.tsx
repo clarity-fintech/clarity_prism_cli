@@ -7,6 +7,7 @@ import SubMenu from "./SubMenu";
 import LinkPanel from "./LinkPanel";
 import ChainPanel from "./ChainPanel";
 import WalletPanel from "./WalletPanel";
+import CommonsLibraryPanel from "./CommonsLibraryPanel";
 import QuantumSkillsPanel from "./QuantumSkillsPanel";
 import SettingsQAPanel from "./SettingsQAPanel";
 import InvestorWalkthrough from "./InvestorWalkthrough";
@@ -14,6 +15,7 @@ import Prompt from "./Prompt";
 import StatusBar from "./StatusBar";
 import OutputPanel from "./OutputPanel";
 import LoadingShell from "./LoadingShell";
+import PortFeedBanner from "./PortFeedBanner";
 import AccountGate from "./AccountGate";
 import {
   funnelNavItems,
@@ -29,7 +31,6 @@ import {
   prismValidate,
   prismTrace,
   prismStats,
-  runCliCommand,
   fetchBlockchainIntegrations,
   fetchAccountStatus,
   fetchSettlementStatus,
@@ -39,10 +40,48 @@ import {
   loadSettings,
   saveSettings,
 } from "../lib/prism-bridge";
+import { executeCommandKey, executeTerminalCommand } from "../lib/terminal-exec";
+import {
+  getApiHostLabel,
+  probeApiConnection,
+  startConnectionRetry,
+  subscribeConnection,
+} from "../lib/port-connection";
 import { useQueryQueue } from "../lib/useQueryQueue";
 import { resolveAccessState, type AccessState } from "../lib/access-gate";
 
 type Mode = "menu" | "chat" | "command" | "settings";
+
+const CLI_ROOTS = new Set([
+  "prism",
+  "helix",
+  "chain",
+  "wallet",
+  "skill",
+  "settlement",
+  "account",
+  "partner",
+  "exchange",
+  "pack",
+  "integrations",
+  "identity",
+  "governance",
+  "nodes",
+  "run",
+  "pipeline",
+  "updates",
+  "version",
+  "config",
+  "investor",
+  "clrt",
+]);
+
+function looksLikeCliInput(text: string): boolean {
+  const parts = text.trim().toLowerCase().split(/\s+/);
+  if (!parts.length) return false;
+  const root = parts[0] === "clrt" ? parts[1] : parts[0];
+  return Boolean(root && CLI_ROOTS.has(root));
+}
 
 async function runPrompt(
   text: string,
@@ -54,11 +93,18 @@ async function runPrompt(
     return [{ text: text.slice(11), tone: "prism" }];
   }
   if (text === "__trace__") return prismTrace(20);
+  if (text.startsWith("help") || text === "full" || text === "/help") {
+    const { fullTerminalUsageLines } = await import("../lib/terminal-usage");
+    return fullTerminalUsageLines();
+  }
   if (text.startsWith("__cmd__ ")) {
-    return runCliCommand(text.slice(8));
+    return executeCommandKey(text.slice(8));
+  }
+  if (looksLikeCliInput(text)) {
+    return executeTerminalCommand(text);
   }
   if (mode === "command" && commandKey) {
-    return runCliCommand(commandKey);
+    return executeCommandKey(commandKey);
   }
 
   if (text.startsWith("predict ") || text.startsWith("/predict")) {
@@ -111,7 +157,7 @@ export default function Terminal() {
 
   if (access === "loading") return <LoadingShell />;
 
-  if (access !== "entitled" && access !== "admin" && access !== "public_launch") {
+  if (access !== "entitled" && access !== "admin" && access !== "personal" && access !== "public_launch") {
     return (
       <AccountGate
         access={access}
@@ -132,7 +178,18 @@ function TerminalInner() {
   const [input, setInput] = useState("");
   const [contextLeft, setContextLeft] = useState(100);
   const [apiUrl, setApiUrl] = useState("");
+  const [portLabel, setPortLabel] = useState(getApiHostLabel);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    void probeApiConnection();
+    const stopRetry = startConnectionRetry();
+    const unsub = subscribeConnection(() => setPortLabel(getApiHostLabel()));
+    return () => {
+      stopRetry();
+      unsub();
+    };
+  }, []);
 
   const subLabel =
     funnelId !== "home" && getFunnel(funnelId).commands[activeIndex]
@@ -182,6 +239,11 @@ function TerminalInner() {
 
       const key = command.key;
 
+      if (key === "__commons_panel__") {
+        navigateFunnel("commons");
+        enqueue("__system__ Commons — TERMINAL USE ONLY. Paste, copy, send, and library are in the panel above.");
+        return;
+      }
       if (key === "config api") {
         setMode("settings");
         setInput(loadSettings().apiUrl);
@@ -336,6 +398,7 @@ function TerminalInner() {
 
   const showChain = funnelId === "chain";
   const showWallet = funnelId === "wallet";
+  const showCommons = funnelId === "commons";
   const showSkills = funnelId === "skills";
   const showQA = funnelId === "qa-trading";
   const showInvestor = funnelId === "investor" && showInvestorWizard;
@@ -344,9 +407,11 @@ function TerminalInner() {
     <div className="terminal">
       <Header />
       <Banner />
+      <PortFeedBanner />
       <FunnelNav funnelId={funnelId} subLabel={subLabel} onNavigate={navigateFunnel} />
       {showChain && <ChainPanel />}
       {showWallet && <WalletPanel />}
+      {showCommons && <CommonsLibraryPanel />}
       {showSkills && <QuantumSkillsPanel />}
       {showQA && (
         <>
@@ -390,6 +455,7 @@ function TerminalInner() {
         contextLeft={contextLeft}
         queuePending={pending}
         queueRunning={running}
+        portLabel={portLabel}
       />
     </div>
   );

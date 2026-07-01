@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Header from "./Header";
 import StatusBar from "./StatusBar";
 import AccountSection from "./AccountSection";
+import AdminLoginSection from "./AdminLoginSection";
+import GateScrollNav from "./GateScrollNav";
+import PrismLogo from "./PrismLogo";
 import InvestorWalkthrough from "./InvestorWalkthrough";
 import {
   resolveAccessState,
@@ -29,12 +32,13 @@ export default function AccountGate({ access, onEntitled }: AccountGateProps) {
   const [profile, setProfile] = useState<BrowserAccountProfile | null>(null);
   const [entitlements, setEntitlements] = useState<EntitlementSnapshot>(EMPTY_ENTITLEMENTS);
   const [showWalkthrough, setShowWalkthrough] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const refresh = useCallback(async () => {
     const resolution = await resolveAccessState();
     setProfile(resolution.profile);
     setEntitlements(resolution.entitlements);
-    if (resolution.state === "entitled" || resolution.state === "admin" || resolution.state === "public_launch") {
+    if (resolution.state === "entitled" || resolution.state === "admin" || resolution.state === "personal" || resolution.state === "public_launch") {
       onEntitled();
     }
   }, [onEntitled]);
@@ -54,8 +58,11 @@ export default function AccountGate({ access, onEntitled }: AccountGateProps) {
         : access;
 
   return (
-    <div className="terminal account-gate">
+    <div className="terminal account-gate theme-bw">
       <Header />
+      <div className="account-gate-logo-row">
+        <PrismLogo variant="bw" size={72} compact showWord />
+      </div>
       <div className="account-gate-banner">
         <span className="account-gate-badge">ACCESS GATE</span>
         <span className="account-gate-version">{versionLabel()}</span>
@@ -63,16 +70,24 @@ export default function AccountGate({ access, onEntitled }: AccountGateProps) {
       </div>
 
       {!showWalkthrough ? (
-        <AccountSection
-          profile={profile}
-          entitlements={entitlements}
-          onAccountCreated={(p) => {
-            setProfile(p);
-            void refresh();
-          }}
-          onEntitled={() => void refresh().then(onEntitled)}
-          onShowWalkthrough={() => setShowWalkthrough(true)}
-        />
+        <div className="gate-layout">
+          <GateScrollNav scrollRootRef={scrollRef} />
+          <div className="gate-scroll-body" ref={scrollRef}>
+            <section id="gate-operator" className="gate-scroll-section">
+              <AdminLoginSection onEntitled={() => void refresh().then(onEntitled)} />
+            </section>
+            <AccountSection
+              profile={profile}
+              entitlements={entitlements}
+              onAccountCreated={(p) => {
+                setProfile(p);
+                void refresh();
+              }}
+              onEntitled={() => void refresh().then(onEntitled)}
+              onShowWalkthrough={() => setShowWalkthrough(true)}
+            />
+          </div>
+        </div>
       ) : (
         <InvestorWalkthrough
           skipAccountStep

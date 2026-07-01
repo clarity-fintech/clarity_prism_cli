@@ -12,6 +12,6 @@ export default defineConfig({
       "@clrt/prism-models": path.resolve(__dirname, "../../packages/prism-models/src/index.ts"),
     },
   },
-  server: { port: 5174, strictPort: false },
+  server: { port: 5174, strictPort: false, open: false },
   build: { outDir: "dist", emptyOutDir: true },
 });

@@ -7,4 +7,9 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  min-height: 0;
+}
+
+.terminal.account-gate {
+  background: #000000;
 }

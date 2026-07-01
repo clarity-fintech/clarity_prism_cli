@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { defaultCommonsStore, sendToUser, type CommonsApiClient } from "@clrt/commons-cas";
+import { defaultCommonsStore, type CommonsApiClient } from "@clrt/commons-cas";
 import { loadProfile } from "@clrt/account-profile";
 import { apiFetch, getApiBaseUrl } from "../lib/api-client.js";
 import { formatOutput, parseGlobalFlags, shouldDryRun } from "../middleware/json-dry-run.js";
@@ -45,34 +45,19 @@ export function registerCommons(prism: Command): void {
     .command("send")
     .requiredOption("--to <username>", "recipient username")
     .requiredOption("--file <path>", "file to send")
-    .description("Send file to username via commons transfer")
-    .action(async (opts: { to: string; file: string }, cmd) => {
+    .description("Send file to username — use PRISM terminal Commons panel (TERMINAL USE ONLY)")
+    .action(async (_opts: { to: string; file: string }, cmd) => {
       const parent = cmd.parent?.parent?.parent?.opts() ?? {};
       const flags = parseGlobalFlags(parent);
       header("PRISM COMMONS", "prism");
-
-      const profile = loadProfile();
-      if (!profile?.username) {
-        formatOutput({ error: "account required — run clrt account create --username ..." }, flags.json);
-        process.exit(1);
-      }
-
-      if (shouldDryRun(flags)) {
-        formatOutput({ dryRun: true, from: profile.username, to: opts.to, file: opts.file }, flags.json);
-        return;
-      }
-
-      const result = await sendToUser(defaultCommonsStore, commonsApi, profile.username, opts.to, opts.file);
-      done(result.transferId ? "SENT" : "QUEUED (API offline)");
       formatOutput(
         {
-          from: profile.username,
-          to: opts.to,
-          namespace: `clrty://@${opts.to}`,
-          ...result,
+          error: "TERMINAL USE ONLY",
+          message: "File send, cache, and library are only available in the PRISM terminal Commons panel.",
         },
         flags.json
       );
+      process.exit(1);
     });
 
   commons

@@ -37,6 +37,7 @@ make live-verify                              # from clarity-prism-cli/
 | `clrt chain …` | clrty-l1 chain tools |
 | `clrt settlement …` | Genesis settlement & compliance |
 | `clrt partner …` | Partner early access |
+| `clrt gate …` | Terminal access gate tools |
 | `clrt exchange …` | Exchange integration QA hub |
 | `clrt pack …` | Access pack download & verify |
 
@@ -669,6 +670,38 @@ clrt settlement status 0xabc... --json
 
 ---
 
+## `clrt gate`
+
+### `clrt gate sync`
+
+Auto-write `apps/prism-cli/.env` from root `.env` / `CLRTY_GATE_MASTER`.
+
+```bash
+clrt gate sync --json
+make gate-sync
+npm run sync:gate-env
+```
+
+### `clrt gate password`
+
+Derive a personal terminal access code from your master secret. This is the single command for generating gate passwords.
+
+```bash
+export CLRTY_GATE_MASTER='your-master-secret'
+clrt gate password --json
+clrt gate password --master 'your-master-secret' --json
+clrt gate password --digest --json   # output VITE_CLRTY_GATE_ACCESS_DIGEST for terminal build
+```
+
+| Flag | Description |
+|------|-------------|
+| `--master <secret>` | Master secret (or `CLRTY_GATE_MASTER` env) |
+| `--digest` | Output SHA-256 digest for terminal build env |
+
+Contact for access requests: **william@clarity-fintech.com**
+
+---
+
 ## `clrt partner`
 
 ### `clrt partner request-access`
@@ -764,11 +797,16 @@ clrt pack verify wallet-integration --json
 ## Makefile & verify
 
 ```bash
-make verify        # packages + inventory + cross-repo + smoke
-make live          # build + ensure API + strict verify + smoke
-make live-verify   # ensure clrty-api + strict verify + smoke
-make cli-smoke     # scripts/cli_smoke.sh
-make build-kit     # dist/clarity-prism-full.zip
+make verify              # packages + inventory + cross-repo + smoke
+make live                # build + ensure API + strict verify + smoke
+make live-verify         # ensure clrty-api + strict verify + smoke
+make launch-prism        # sync gate env + PRISM terminal dev (:5174)
+make launch-prism-live   # build + API + gate sync + terminal dev
+make gate-sync           # auto-set apps/prism-cli/.env from .env
+make gate-password       # sync + print personal access code
+make terminal-build      # sync gate + production terminal build
+make cli-smoke           # scripts/cli_smoke.sh
+make build-kit           # dist/clarity-prism-full.zip
 bash scripts/ensure_api_running.sh
 bash npm-install-local.sh
 ```
@@ -779,39 +817,70 @@ bash npm-install-local.sh
 
 The PRISM terminal UI blocks general access until public launch. **`clrt account create` is never gated.**
 
+### One-time setup
+
 ```bash
-npm run build:terminal
-npm run dev:terminal   # http://localhost:5174
+cp .env.example .env
+# Set CLRTY_GATE_MASTER (personal access codes) and CLRTY_PRISM_ADMIN_PASS (operator)
 ```
+
+Gate env **auto-syncs** to `apps/prism-cli/.env` on every terminal launch/build.
+
+### Launch commands
+
+```bash
+make launch-prism              # sync gate + dev → http://localhost:5174
+make launch-prism-live         # build + API + sync gate + dev
+npm run launch:prism
+npm run launch:prism:live
+npm run dev:terminal           # sync gate + dev
+npm run build:terminal         # sync gate + production build
+npm run sync:gate-env          # manual sync only
+clrt gate sync                 # same via CLI
+```
+
+### Personal access code (single command)
+
+```bash
+clrt gate password             # XXXX-XXXX-XXXX-XXXX from CLRTY_GATE_MASTER
+clrt gate password --digest    # inspect digest (auto-written on sync)
+make gate-password
+```
+
+Contact for access: **william@clarity-fintech.com**
 
 | State | Who sees it |
 |-------|-------------|
 | Blocked shell | Visitors without account |
 | Account created | Registered users awaiting entitlement |
-| Full terminal | Investor, Mastermind pack, approved partner, admin, or public launch |
+| Full terminal | Investor, Mastermind, partner, personal code, admin, or public launch |
 
 **Unlock (any one path):**
 
 ```bash
+# Personal access code (operator-issued — auto-enabled when CLRTY_GATE_MASTER in .env)
+clrt gate password
+
 # Investor — settlement walkthrough in terminal UI
 clrt settlement register --wallet 0x...
 clrt settlement confirm-deposit --tx 0x... --wallet 0x...
 
 # Mastermind First Access pack
 clrt pack download mastermind
-clrt pack verify mastermind    # writes ~/.clrt/prism/entitlements.json
+clrt pack verify mastermind
 
 # Partner early access
 clrt partner request-access --entity "Acme" --tier seed
 clrt partner status
 ```
 
-**Terminal env vars:**
+**Terminal env vars** (root `.env` → auto-synced):
 
 | Variable | Effect |
 |----------|--------|
+| `CLRTY_GATE_MASTER` | Master secret — sync derives `VITE_CLRTY_GATE_ACCESS_DIGEST` |
+| `CLRTY_PRISM_ADMIN_PASS` | Operator admin override (synced to Vite env) |
 | `VITE_PRISM_TERMINAL_PUBLIC=1` | Disable gate (public launch) |
-| `VITE_CLRTY_PRISM_ADMIN_PASS` | Operator admin unlock (Vite build-time) |
 | `CLRTY_DEV_PARTNER_APPROVED=1` | API dev: auto-approve partner requests |
 
 **API entitlement fields** (`GET /v1/account/status?username=`):
@@ -837,8 +906,9 @@ clrt partner status
 |----------|--------|
 | `CLRTY_API_URL` | API base (default `http://127.0.0.1:8545`) |
 | `CLRTY_API_KEY` | Bearer token for API |
+| `CLRTY_GATE_MASTER` | Master secret — auto-syncs gate digest on terminal launch |
+| `CLRTY_PRISM_ADMIN_PASS` | Operator admin password — auto-syncs to Vite |
 | `VITE_PRISM_TERMINAL_PUBLIC` | `1` = disable terminal access gate |
-| `VITE_CLRTY_PRISM_ADMIN_PASS` | Operator password for terminal admin unlock |
 | `CLRTY_DEV_PARTNER_APPROVED` | `1` = API auto-approves partner requests (dev) |
 | `CLRTY_VERIFY_STRICT=1` | Fail verify if API unreachable |
 | `CLRTY_API_STRICT=1` | Exit 1 on `chain ready` failure |

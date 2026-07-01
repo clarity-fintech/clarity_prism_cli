@@ -10,6 +10,30 @@
   margin-bottom: 18px;
 }
 
+.prism-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.prism-logo-compact {
+  gap: 16px;
+}
+
+.prism-logo-word-wrap {
+  position: relative;
+}
+
+.account-gate-logo-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.prism-logo-svg-bw {
+  filter: none;
+}
+
 .prism-logo-svg {
   width: 120px;
   height: 120px;
@@ -31,6 +55,32 @@
   text-shadow: none;
   filter: contrast(1.15);
   image-rendering: pixelated;
+}
+
+.prism-word-bw {
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: 0.06em;
+  font-family: "Berkeley Mono", "Geist Mono", "SF Mono", monospace;
+  color: var(--white);
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  filter: none;
+  image-rendering: pixelated;
+}
+
+.prism-word-compact {
+  font-size: 48px;
+}
+
+.prism-word-bw.prism-word-compact {
+  font-size: 40px;
+}
+
+.prism-word-bw::after {
+  display: none;
 }
 
 .prism-word::after {
