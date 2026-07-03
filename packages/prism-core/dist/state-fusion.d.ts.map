@@ -1,0 +1,1 @@
+{"version":3,"file":"state-fusion.d.ts","sourceRoot":"","sources":["../src/state-fusion.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,UAAU;IACzB,OAAO,EAAE,MAAM,EAAE,CAAC;IAClB,SAAS,EAAE,MAAM,CAAC;IAClB,QAAQ,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;CACnC;AAED,qBAAa,WAAW;IACtB,IAAI,CAAC,OAAO,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,EAAE,GAAG,UAAU;CAWrD"}

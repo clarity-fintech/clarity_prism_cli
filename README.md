@@ -35,6 +35,23 @@ Standalone repo: https://github.com/clarity-fintech/clarity_prism_cli
 
 ---
 
+## Live Downloads
+
+- **Full PRISM + HELIX CLI:** [`dist/clarity-prism-full.zip`](dist/clarity-prism-full.zip)
+- **CLI account + terminal gate pack:** [`dist/prism-cli-account-gate-pack.zip`](dist/prism-cli-account-gate-pack.zip)
+- **Live PRISM SDK downloads:** [`dist/prism-live-sdk-downloads.zip`](dist/prism-live-sdk-downloads.zip)
+- **Mastermind First Access Pack:** [`dist/mastermind-first-access-pack.zip`](dist/mastermind-first-access-pack.zip)
+- **Checksums:** [`dist/SHA256SUMS.txt`](dist/SHA256SUMS.txt)
+
+```bash
+clrt account create --username alice --entity "Acme" --email ops@acme.com --intent liquidity
+clrt gate password
+clrt pack download mastermind
+clrt pack verify mastermind
+```
+
+---
+
 ## Install
 
 ### Git clone (full access)

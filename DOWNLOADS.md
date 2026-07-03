@@ -26,6 +26,9 @@ make verify
 | File | SHA256 | Contents |
 |------|--------|----------|
 | `dist/clarity-prism-full.zip` | [`dist/SHA256SUMS.txt`](dist/SHA256SUMS.txt) | Full PRISM + HELIX CLI, SDK packages, docs, portal, verify scripts, examples, and offline install assets |
+| `dist/prism-live-sdk-downloads.zip` | [`dist/SHA256SUMS.txt`](dist/SHA256SUMS.txt) | `@clrt/*` SDK packages, CLI app, examples, and package docs |
+| `dist/prism-cli-account-gate-pack.zip` | [`dist/SHA256SUMS.txt`](dist/SHA256SUMS.txt) | Account creation, terminal gate, personal access code, and pack command implementation/docs |
+| `dist/mastermind-first-access-pack.zip` | [`dist/SHA256SUMS.txt`](dist/SHA256SUMS.txt) | Mastermind First Access Pack for `clrt pack download mastermind` and `clrt pack verify mastermind` |
 
 Build locally:
 

@@ -13,9 +13,9 @@ const PACKS = [
   {
     id: "mastermind",
     name: "Volkov Mastermind First Access Pack",
-    url: "https://raw.githubusercontent.com/theangelofwill/-CLRTY/main/CLRTY_SUBSTRATE/boot/first_access_manifest.json",
-    verify: "first_access_manifest.json",
-    sha256: null as string | null,
+    url: "https://github.com/clarity-fintech/clarity_prism_cli/raw/main/dist/mastermind-first-access-pack.zip",
+    verify: "CLRTY_SUBSTRATE/boot/first_access_manifest.json",
+    sha256: "494ea544958ed2a921f4bd99efc61ef1153a587e6075d0aefa1fada46362c352",
   },
   {
     id: "wallet-integration",

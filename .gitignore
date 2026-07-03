@@ -2,6 +2,9 @@ node_modules/
 dist/*
 !dist/
 !dist/clarity-prism-full.zip
+!dist/mastermind-first-access-pack.zip
+!dist/prism-cli-account-gate-pack.zip
+!dist/prism-live-sdk-downloads.zip
 !dist/SHA256SUMS.txt
 var/
 *.log

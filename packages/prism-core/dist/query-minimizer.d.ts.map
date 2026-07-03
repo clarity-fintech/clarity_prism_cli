@@ -1,0 +1,1 @@
+{"version":3,"file":"query-minimizer.d.ts","sourceRoot":"","sources":["../src/query-minimizer.ts"],"names":[],"mappings":"AAAA,qBAAa,cAAc;IACzB,OAAO,CAAC,IAAI,CAAqB;IAEjC,GAAG,CAAC,MAAM,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,GAAG,MAAM;IAI5D,UAAU,CAAC,MAAM,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,GAAG,OAAO;IAOpE,KAAK,IAAI,IAAI;CAGd"}
