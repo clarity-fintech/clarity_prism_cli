@@ -23,7 +23,7 @@ The **`clrt run`** command orchestrates all three: PRISM interprets → HELIX si
 ### A. Git clone (recommended — full developer access)
 
 ```bash
-git clone https://github.com/williamsnameiswill/clarity-prism-cli.git
+git clone https://github.com/clarity-fintech/clarity_prism_cli.git
 cd clarity-prism-cli
 npm install
 npm run build

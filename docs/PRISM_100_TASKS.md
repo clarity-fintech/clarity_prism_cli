@@ -1,7 +1,7 @@
 # PRISM 100 Tasks — Tier 5 Enterprise CLI Deliverable Checklist
 
 **Plan:** Tier 5 Enterprise PRISM CLI & P2P Infrastructure  
-**Repo:** [williamsnameiswill/clarity-prism-cli](https://github.com/williamsnameiswill/clarity-prism-cli)  
+**Repo:** [clarity-fintech/clarity_prism_cli](https://github.com/clarity-fintech/clarity_prism_cli)  
 **Version baseline:** `1.0.2.μ1`  
 **Legend:** `[x]` implemented · `[~]` stub/scaffold · `[ ]` not started
 
@@ -198,7 +198,7 @@ Paste the block below into [Early Access to CLRITY](https://app.notion.com/p/Ear
 ```notion
 # PRISM CLI — Tier 5 Enterprise Launch Tracker
 
-**Ship repo:** williamsnameiswill/clarity-prism-cli  
+**Ship repo:** clarity-fintech/clarity_prism_cli  
 **Release:** 1.0.2.μ1 (Tier 5 enterprise)  
 **Chain:** clrty-1  
 **Ledger:** clarity-prism-cli/docs/PRISM_100_TASKS.md  

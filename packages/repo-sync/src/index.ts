@@ -29,7 +29,7 @@ const DEFAULT_MANIFEST: RepoSyncManifest = {
   prism_cli: {
     version: "1.0.2",
     micro: 1,
-    repo: "williamsnameiswill/clarity-prism-cli",
+    repo: "clarity-fintech/clarity_prism_cli",
     tag: "v1.0.2",
   },
   repos: [
@@ -39,7 +39,7 @@ const DEFAULT_MANIFEST: RepoSyncManifest = {
       repo: "clarity-prism-cli",
       ref: "main",
       role: "company-cli",
-      url: "https://github.com/williamsnameiswill/clarity-prism-cli",
+      url: "https://github.com/clarity-fintech/clarity_prism_cli",
     },
     {
       slug: "clrt-monorepo",
@@ -55,7 +55,7 @@ const DEFAULT_MANIFEST: RepoSyncManifest = {
       repo: "CLRTY-WALLET-INTEGRATION",
       ref: "main",
       role: "wallet-sdk",
-      url: "https://github.com/theangelofwill/CLRTY-WALLET-INTEGRATION",
+      url: "https://github.com/clarity-fintech/wallet_integration",
     },
   ],
 };

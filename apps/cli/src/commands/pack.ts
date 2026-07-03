@@ -20,7 +20,7 @@ const PACKS = [
   {
     id: "wallet-integration",
     name: "CLRTY Wallet Integration Pack",
-    url: "https://github.com/theangelofwill/CLRTY-WALLET-INTEGRATION/raw/main/dist/clrty-wallet-integration-full.zip",
+    url: "https://github.com/clarity-fintech/wallet_integration/raw/main/dist/clrty-wallet-integration-full.zip",
     verify: "wallet_integration_manifest.json",
     sha256: null as string | null,
   },

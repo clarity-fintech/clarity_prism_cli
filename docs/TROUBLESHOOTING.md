@@ -14,7 +14,7 @@ npm run build
 Or clone to a different name:
 
 ```bash
-git clone https://github.com/williamsnameiswill/clarity-prism-cli.git clarity-prism-cli-2
+git clone https://github.com/clarity-fintech/clarity_prism_cli.git clarity-prism-cli-2
 ```
 
 Inside the CLRTY monorepo, the canonical copy is:

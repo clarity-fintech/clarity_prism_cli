@@ -6,12 +6,12 @@ Customer download index for the full PRISM + HELIX ecosystem.
 
 ## Git repository (recommended)
 
-**URL:** https://github.com/williamsnameiswill/clarity-prism-cli
+**URL:** https://github.com/clarity-fintech/clarity_prism_cli
 
 Includes: all `@clrt/*` packages, CLI source, docs, portal, verify scripts, examples.
 
 ```bash
-git clone https://github.com/williamsnameiswill/clarity-prism-cli.git
+git clone https://github.com/clarity-fintech/clarity_prism_cli.git
 cd clarity-prism-cli
 npm install
 npm run build

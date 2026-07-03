@@ -4,7 +4,7 @@
 
 **Topic:** Intelligent routing + execution operating system — PRISM decides *what*, HELIX decides *how*, Skills decide *what value*.
 
-Standalone repo: https://github.com/williamsnameiswill/clarity-prism-cli
+Standalone repo: https://github.com/clarity-fintech/clarity_prism_cli
 
 | Layer | Role | CLI |
 |-------|------|-----|
@@ -40,7 +40,7 @@ Standalone repo: https://github.com/williamsnameiswill/clarity-prism-cli
 ### Git clone (full access)
 
 ```bash
-git clone https://github.com/williamsnameiswill/clarity-prism-cli.git
+git clone https://github.com/clarity-fintech/clarity_prism_cli.git
 cd clarity-prism-cli
 npm install
 npm run build

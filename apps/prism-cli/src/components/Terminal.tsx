@@ -297,7 +297,7 @@ function TerminalInner() {
         return;
       }
       if (key === "config projects") {
-        enqueue("__system__ PRISM projects — git clone github.com/williamsnameiswill/clarity-prism-cli");
+        enqueue("__system__ PRISM projects — git clone github.com/clarity-fintech/clarity_prism_cli");
         return;
       }
 

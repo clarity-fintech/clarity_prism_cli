@@ -9,7 +9,7 @@
 ## Step 1 — Get the repo
 
 ```bash
-git clone https://github.com/williamsnameiswill/clarity-prism-cli.git
+git clone https://github.com/clarity-fintech/clarity_prism_cli.git
 cd clarity-prism-cli
 ```
 

@@ -7,7 +7,7 @@ End-to-end workflows for common CLRTY PRISM + HELIX tasks.
 ## 1. First-time developer setup
 
 ```bash
-git clone https://github.com/williamsnameiswill/clarity-prism-cli.git
+git clone https://github.com/clarity-fintech/clarity_prism_cli.git
 cd clarity-prism-cli
 npm install
 npm run build
