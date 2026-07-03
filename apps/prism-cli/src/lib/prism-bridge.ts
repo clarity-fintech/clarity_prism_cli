@@ -260,7 +260,7 @@ export async function requestPartnerAccessBrowser(): Promise<{ ok: boolean; stat
 
 export async function verifyMastermindPackBrowser(): Promise<{ ok: boolean; sha256?: string }> {
   const manifestUrl =
-    "https://raw.githubusercontent.com/theangelofwill/-CLRTY/main/CLRTY_SUBSTRATE/boot/first_access_manifest.json";
+    "https://raw.githubusercontent.com/clarity-fintech/research_kit/main/data/boot/first_access_manifest.json";
   try {
     const res = await fetch(manifestUrl);
     if (!res.ok) return { ok: false };

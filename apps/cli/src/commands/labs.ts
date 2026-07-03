@@ -10,11 +10,11 @@ function walkthroughPath(): string {
 }
 
 export function registerLabs(program: Command): void {
-  const labs = program.command("labs").description("CLRTY Labs walkthrough — labs.clarity-fintech.com");
+  const labs = program.command("labs").description("Clarity Fortress walkthrough — dev.clrty.io/labs");
 
   labs
     .command("status")
-    .description("Labs API + manifest status")
+    .description("Fortress API + manifest status")
     .action(async (_opts, cmd) => {
       const flags = parseGlobalFlags(cmd.parent?.parent?.opts() ?? {});
       header("LABS", "prism");
@@ -30,7 +30,7 @@ export function registerLabs(program: Command): void {
       formatOutput({
         api,
         remote,
-        labs_url: "https://labs.clarity-fintech.com",
+        labs_url: "https://dev.clrty.io/labs",
         pages_url: "https://0af3a55b.clrty-labs.pages.dev",
         chain_id: "clrty-1",
         rpc: "https://rpc.clarity-fintech.com",
@@ -39,7 +39,7 @@ export function registerLabs(program: Command): void {
 
   labs
     .command("step")
-    .argument("<n>", "walkthrough step 1-12")
+    .argument("<n>", "walkthrough step 1-13")
     .description("Show walkthrough step from steps.json")
     .action(async (n: string, _opts, cmd) => {
       const flags = parseGlobalFlags(cmd.parent?.parent?.opts() ?? {});
