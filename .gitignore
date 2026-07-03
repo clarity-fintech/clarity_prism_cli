@@ -1,5 +1,8 @@
 node_modules/
-dist/
+dist/*
+!dist/
+!dist/clarity-prism-full.zip
+!dist/SHA256SUMS.txt
 var/
 *.log
 .env

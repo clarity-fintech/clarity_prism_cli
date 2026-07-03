@@ -25,7 +25,7 @@ make verify
 
 | File | SHA256 | Contents |
 |------|--------|----------|
-| `dist/clarity-prism-full.zip` | See `var/compliance/prism_bundle_report.json` after build | Full monorepo snapshot |
+| `dist/clarity-prism-full.zip` | [`dist/SHA256SUMS.txt`](dist/SHA256SUMS.txt) | Full PRISM + HELIX CLI, SDK packages, docs, portal, verify scripts, examples, and offline install assets |
 
 Build locally:
 

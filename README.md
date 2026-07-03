@@ -57,7 +57,7 @@ node apps/cli/dist/index.js --help
 
 ### ZIP bundle
 
-Extract `dist/clarity-prism-full.zip`, then run `bash npm-install-local.sh`.
+Download [`dist/clarity-prism-full.zip`](dist/clarity-prism-full.zip), verify it with [`dist/SHA256SUMS.txt`](dist/SHA256SUMS.txt), then extract it and run `bash npm-install-local.sh`.
 
 ### Requirements
 
